@@ -1,0 +1,50 @@
+
+# `docker compose up` is the whole install. Everything Steward needs to run
+# against a repository is here; nothing is expected to be on the host but Docker
+# and a GitHub token.
+
+name: steward
+
+services:
+  db:
+    image: postgres:18-alpine
+    environment:
+      # The superuser is used for bootstrap only. Application connections come in
+      # as steward_engine, which has deliberately fewer privileges -- see
+      # db/init/10-roles.sql and docs/design/0001-llm-boundary.md.
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-steward-dev}
+      POSTGRES_DB: steward
+    volumes:
+      - db-data:/var/lib/postgresql/data
+      # Files here run once, in filename order, on an empty data directory. They
+      # do not re-run against an existing volume, so they may only create things
+      # that never change: roles, schemas, grants. Table definitions belong in
+      # migrations, which run every boot and are versioned.
+      - ./db/init:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d steward"]
+      interval: 3s
+      timeout: 3s
+      retries: 20
+    ports:
+      # Exposed so `psql` and the audit scripts can reach it from the host. A
+      # deployment that does not want this can drop the mapping; nothing in
+      # Steward depends on the port being published.
+      - "${STEWARD_DB_PORT:-5432}:5432"
+
+  steward:
+    build: .
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      STEWARD_DATABASE_URL: postgresql://steward_engine:${STEWARD_ENGINE_PASSWORD:-steward-dev}@db:5432/steward
+      GITHUB_TOKEN: ${GITHUB_TOKEN:?set GITHUB_TOKEN in .env or the environment}
+    # V0 has no long-running process. The container exists so `docker compose run
+    # steward sync <repo>` works with no Python on the host; V1's web UI turns
+    # this into a real service with a command and a port.
+    command: ["--help"]
+
+volumes:
+  db-data:
