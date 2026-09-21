@@ -24,9 +24,14 @@ deferred problems live in `SESSION.md`.
 
 2. **Dockerfile.** `compose.yaml` declares `build: .` and there is no Dockerfile.
 
-3. **GraphQL client and normalizer.** Fetch wide — see the single-tier note in
-   `SESSION.md`. `REVIEW_DISMISSED_EVENT` must be in the query from the first
-   sync. Every event it builds goes through `validate_payload` before `Event`.
+3. **The normalizer.** The query and the client are generated from the pinned
+   schema (`scripts/generate.sh`), so fetching wide is settled: all 78 timeline
+   types, 1 rate-limit point per page of 25 PRs. What is left is mapping the
+   generated models onto `Event`, through `validate_payload`.
+
+   Blocked on one decision: single-tier or two-tier. A typed client makes the
+   raw tier cheap — store the response model, derive `events` from it — and
+   until that is settled the normalizer has no target to write to.
 
 4. **`steward sync` / `steward events`,** then V0's acceptance: sync twice and
    add zero rows; truncate everything below the log, replay, diff identical.
