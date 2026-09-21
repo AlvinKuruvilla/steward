@@ -24,14 +24,20 @@ deferred problems live in `SESSION.md`.
 
 2. **Dockerfile.** `compose.yaml` declares `build: .` and there is no Dockerfile.
 
-3. **The normalizer.** The query and the client are generated from the pinned
-   schema (`scripts/generate.sh`), so fetching wide is settled: all 78 timeline
-   types, 1 rate-limit point per page of 25 PRs. What is left is mapping the
-   generated models onto `Event`, through `validate_payload`.
+3. **Sync.** The normalizer is done and runs clean over the corpus. What is
+   left between it and `steward sync`:
 
-   Blocked on one decision: single-tier or two-tier. A typed client makes the
-   raw tier cheap — store the response model, derive `events` from it — and
-   until that is settled the normalizer has no target to write to.
+   - **Timeline pagination.** `PullRequestTimelinePage` exists in the query but
+     nothing calls it. A pull request with more than 100 items is silently
+     truncated today, which is the bug `fetch_prs.py` had.
+   - **A second set of models.** ariadne-codegen does not hoist a union fragment
+     into `fragments.py`, so the timeline page operation has its own parallel
+     classes and `events_for_pull_request` only accepts the first operation's.
+     Either re-validate one into the other, or take the page models as the only
+     input and hand the paginator dicts.
+   - **The subjects snapshot.** `PullRequestSnapshot` is fetched and nothing
+     writes it to `subjects`.
+   - **Writing rows,** which needs the migration runner below.
 
 4. **`steward sync` / `steward events`,** then V0's acceptance: sync twice and
    add zero rows; truncate everything below the log, replay, diff identical.
