@@ -15,6 +15,7 @@ a reviewer can see what they excluded:
              taken off.
 """
 
+import re
 import sys
 from pathlib import Path
 
@@ -28,6 +29,8 @@ from graphql import (
     parse,
     validate,
 )
+
+from steward.model import KIND_FOR_TYPENAME
 
 ROOT = Path(__file__).resolve().parent.parent
 SCHEMA = ROOT / "schema" / "github.graphql"
@@ -184,7 +187,31 @@ def render(member, fields_, conflicts):
 
 
 union = schema.type_map["PullRequestTimelineItems"]
-sorted_members = sorted(union.types, key=lambda m: m.name)
+
+# The log stores normalized events only, so an item type with no EventKind is
+# discarded the moment it arrives. Asking for it would cost response bytes and
+# buy nothing; the filter and the fragment are both built from the model's own
+# mapping, which is what stops the query and the model drifting apart.
+by_name = {m.name: m for m in union.types}
+unknown = sorted(set(KIND_FOR_TYPENAME) - set(by_name))
+if unknown:
+    raise SystemExit(f"not timeline item types in {SCHEMA.name}: {', '.join(unknown)}")
+sorted_members = [by_name[name] for name in sorted(KIND_FOR_TYPENAME)]
+
+# PullRequestCommit -> PULL_REQUEST_COMMIT, checked against the filter enum so
+# a name the conversion mangles fails here rather than at the API.
+item_type_enum = schema.type_map["PullRequestTimelineItemsItemType"]
+
+
+def screaming(name):
+    return re.sub(r"(?<!^)(?=[A-Z])", "_", name).upper()
+
+
+item_types = sorted(screaming(name) for name in KIND_FOR_TYPENAME)
+missing = [v for v in item_types if v not in item_type_enum.values]
+if missing:
+    raise SystemExit(f"not values of {item_type_enum.name}: {', '.join(missing)}")
+ITEM_TYPES = "[" + ", ".join(item_types) + "]"
 per_member = {m.name: member_fields(m) for m in sorted_members}
 conflicts = conflicting_names(per_member)
 fragment = "\n".join(
@@ -226,7 +253,7 @@ query PullRequestPage($owner: String!, $name: String!, $cursor: String) {{
       pageInfo {{ hasNextPage endCursor }}
       nodes {{
         ...PullRequestSnapshot
-        timelineItems(first: {PAGE}) {{
+        timelineItems(first: {PAGE}, itemTypes: {ITEM_TYPES}) {{
           totalCount
           pageInfo {{ hasNextPage endCursor }}
           nodes {{ ...TimelineItem }}
@@ -245,7 +272,7 @@ query PullRequestTimelinePage(
   repository(owner: $owner, name: $name) {{
     pullRequest(number: $number) {{
       number
-      timelineItems(first: {PAGE}, after: $cursor) {{
+      timelineItems(first: {PAGE}, after: $cursor, itemTypes: {ITEM_TYPES}) {{
         pageInfo {{ hasNextPage endCursor }}
         nodes {{ ...TimelineItem }}
       }}
@@ -264,7 +291,7 @@ OUT.parent.mkdir(exist_ok=True)
 OUT.write_text(document, encoding="utf-8")
 
 kept = document.count("... on ")
-print(f"{len(union.types)} timeline types -> {OUT}")
+print(f"{len(sorted_members)} of {len(union.types)} timeline types -> {OUT}")
 print(f"  {len(document.splitlines())} lines, {len(document):,} bytes, validates clean")
 print(f"  {len(dropped)} fields dropped, e.g. {', '.join(sorted(dropped)[:3])}")
 sample = ", ".join(sorted(deprecated)[:3])

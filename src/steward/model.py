@@ -239,6 +239,35 @@ PAYLOAD_FOR: dict[EventKind, PayloadType | None] = {
 }
 
 
+# The log stores normalized events and nothing else, so a timeline item with no
+# kind here is discarded at sync time and is only recoverable by re-syncing the
+# repository. `scripts/gen_timeline_query.py` reads this to build the query's
+# itemTypes filter, which is what keeps the query from asking for items the
+# model would throw away.
+#
+# EventKind.OPENED is absent on purpose: GitHub emits no timeline item when a
+# pull request opens, and it is derived from createdAt instead.
+KIND_FOR_TYPENAME: dict[str, EventKind] = {
+    "ReadyForReviewEvent": EventKind.READY_FOR_REVIEW,
+    "ConvertToDraftEvent": EventKind.CONVERT_TO_DRAFT,
+    "ReopenedEvent": EventKind.REOPENED,
+    "ClosedEvent": EventKind.CLOSED,
+    "MergedEvent": EventKind.MERGED,
+    "PullRequestCommit": EventKind.COMMIT,
+    "HeadRefForcePushedEvent": EventKind.FORCE_PUSHED,
+    "PullRequestReview": EventKind.REVIEW,
+    "ReviewRequestedEvent": EventKind.REVIEW_REQUESTED,
+    "ReviewRequestRemovedEvent": EventKind.REVIEW_REQUEST_REMOVED,
+    "ReviewDismissedEvent": EventKind.REVIEW_DISMISSED,
+    "AssignedEvent": EventKind.ASSIGNED,
+    "UnassignedEvent": EventKind.UNASSIGNED,
+    "LabeledEvent": EventKind.LABELED,
+    "UnlabeledEvent": EventKind.UNLABELED,
+    "IssueComment": EventKind.COMMENT,
+    "CrossReferencedEvent": EventKind.CROSS_REFERENCED,
+}
+
+
 @dataclass(frozen=True, slots=True)
 class Event:
     "One row of the event log"

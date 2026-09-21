@@ -9,6 +9,7 @@ from hypothesis import given
 from hypothesis import strategies as st
 
 from steward.model import (
+    KIND_FOR_TYPENAME,
     PAYLOAD_FOR,
     ActorRef,
     ActorType,
@@ -57,6 +58,20 @@ def test_payload_for_covers_every_kind() -> None:
     # its payload type-checks and passes CI; it surfaces as a KeyError in the
     # normalizer, against a real repository, on a sync that is rate-limited.
     assert set(PAYLOAD_FOR) == set(EventKind)
+
+
+def test_every_kind_but_opened_has_a_timeline_type() -> None:
+    # A kind with no typename can never be ingested: nothing maps a timeline
+    # item onto it, and the query never asks for one. OPENED is the exception,
+    # derived from the pull request's createdAt rather than from an item.
+    mapped = set(KIND_FOR_TYPENAME.values())
+    assert set(EventKind) - mapped == {EventKind.OPENED}
+
+
+def test_timeline_types_are_distinct() -> None:
+    # Two typenames sharing a kind would silently collapse two different
+    # GitHub events into one, and the dict would hide it.
+    assert len(set(KIND_FOR_TYPENAME.values())) == len(KIND_FOR_TYPENAME)
 
 
 def test_validate_payload_accepts_the_declared_shape() -> None:
