@@ -106,3 +106,21 @@ include_comments = "none"
 # true generates the whole schema's, which is 8,000 lines nothing imports.
 include_all_inputs = false
 include_all_enums = false
+
+# Custom scalars, which otherwise generate as `Any`. A timestamp arriving as a
+# string the normalizer has to parse is the one thing the generated models exist
+# to prevent.
+[tool.ariadne-codegen.scalars.DateTime]
+type = "datetime.datetime"
+
+[tool.ariadne-codegen.scalars.GitObjectID]
+type = "str"
+
+[tool.ariadne-codegen.scalars.URI]
+type = "str"
+
+[tool.ariadne-codegen.scalars.HTML]
+type = "str"
+
+[tool.ariadne-codegen.scalars.GitTimestamp]
+type = "datetime.datetime"

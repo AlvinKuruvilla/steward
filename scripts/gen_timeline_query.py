@@ -38,7 +38,14 @@ SCHEMA = ROOT / "schema" / "github.graphql"
 # committed one, which is what stops the query drifting from the schema.
 OUT = Path(sys.argv[1]) if len(sys.argv) > 1 else ROOT / "queries" / "timeline.graphql"
 
-IDENTITY = ("login", "slug", "name", "oid", "number", "abbreviatedOid")
+# What to keep of an object hanging off an event: enough to say which object it
+# was, and when. `id` is here because a payload that refers to another object
+# stores its node id -- DismissalPayload.review_id is the review GitHub
+# overwrote. The timestamp suffixes are here because a projected object is
+# sometimes where the event's own time lives: PullRequestCommit has no
+# createdAt, and a commit's committedDate is the only time it carries.
+IDENTITY = ("id", "login", "slug", "name", "oid", "number", "abbreviatedOid")
+TIMESTAMP_SUFFIX = ("At", "Date")
 DROP_EXACT = {
     "body",
     "bodyText",
@@ -49,6 +56,10 @@ DROP_EXACT = {
     "url",
 }
 DROP_SUFFIX = ("HTML", "ResourcePath", "Url")
+# Answers that depend on who is asking. The log is meant to be reproducible
+# from GitHub by anyone holding a token for the repository, and a field whose
+# value is a property of the token is not.
+DROP_PREFIX = ("viewer",)
 
 # Back-references to the thing the event happened to. We queried that subject,
 # so its number is already in hand, and the types disagree about nullability
@@ -93,6 +104,18 @@ def members_of(composite):
     )
 
 
+def kept_fields(composite):
+    """Identity fields of a concrete type, plus its timestamps."""
+    return [f for f in IDENTITY if f in composite.fields] + [
+        name
+        for name, field in composite.fields.items()
+        if not field.args
+        and name.endswith(TIMESTAMP_SUFFIX)
+        and is_scalar_type(unwrap(field.type))
+        and not field.deprecation_reason
+    ]
+
+
 def identity_selection(field_type):
     """The identity fields of a composite type, or None if it has none.
 
@@ -107,13 +130,12 @@ def identity_selection(field_type):
         members = members_of(inner)
         signatures: dict[str, set[str]] = {}
         for m in members:
-            for f in IDENTITY:
-                if f in m.fields:
-                    signatures.setdefault(f, set()).add(str(m.fields[f].type))
+            for f in kept_fields(m):
+                signatures.setdefault(f, set()).add(str(m.fields[f].type))
         varying = {f for f, sigs in signatures.items() if len(sigs) > 1}
         parts = []
         for m in members:
-            picked = [f for f in IDENTITY if f in m.fields]
+            picked = kept_fields(m)
             if not picked:
                 continue
             keys = " ".join(
@@ -123,7 +145,7 @@ def identity_selection(field_type):
             parts.append(f"... on {m.name} {{ {keys} }}")
         return f"{{ __typename {' '.join(parts)} }}" if parts else None
     if is_object_type(inner):
-        picked = [f for f in IDENTITY if f in inner.fields]
+        picked = kept_fields(inner)
         return f"{{ {' '.join(picked)} }}" if picked else None
     return None
 
@@ -136,7 +158,12 @@ def member_fields(member):
         # need a decision this generator has no basis for making.
         if field.args:
             continue
-        if name in DROP_EXACT or name in DROP_BACKREF or name.endswith(DROP_SUFFIX):
+        if (
+            name in DROP_EXACT
+            or name in DROP_BACKREF
+            or name.endswith(DROP_SUFFIX)
+            or name.startswith(DROP_PREFIX)
+        ):
             dropped.append(f"{member.name}.{name}")
             continue
         # The schema says what GitHub intends to remove. AssignedEvent.user was

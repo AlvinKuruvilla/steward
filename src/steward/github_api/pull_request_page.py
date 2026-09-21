@@ -1,14 +1,10 @@
+from datetime import datetime
 from typing import Annotated, Any, Literal, Optional, Union
 
 from pydantic import Field
 
 from .base_model import BaseModel
-from .enums import (
-    CommentAuthorAssociation,
-    CommentCannotUpdateReason,
-    IssueStateReason,
-    PullRequestReviewState,
-)
+from .enums import CommentAuthorAssociation, IssueStateReason, PullRequestReviewState
 from .fragments import (  # noqa: F401
     PullRequestSnapshot,
     PullRequestSnapshotAuthor,
@@ -187,7 +183,7 @@ class PullRequestPageRepositoryPullRequestsNodesTimelineItemsNodesAssignedEvent(
             Field(discriminator="typename__"),
         ]
     ]
-    created_at: Any = Field(alias="createdAt")
+    created_at: datetime = Field(alias="createdAt")
     id: str
 
 
@@ -201,70 +197,99 @@ class PullRequestPageRepositoryPullRequestsNodesTimelineItemsNodesAssignedEventA
     BaseModel
 ):
     typename__: Literal["Bot"] = Field(alias="__typename")
+    id: str
     login: str
+    created_at: datetime = Field(alias="createdAt")
+    updated_at: datetime = Field(alias="updatedAt")
 
 
 class PullRequestPageRepositoryPullRequestsNodesTimelineItemsNodesAssignedEventActorEnterpriseUserAccount(
     BaseModel
 ):
     typename__: Literal["EnterpriseUserAccount"] = Field(alias="__typename")
+    id: str
     login: str
     name: Optional[str]
+    created_at: datetime = Field(alias="createdAt")
+    updated_at: datetime = Field(alias="updatedAt")
 
 
 class PullRequestPageRepositoryPullRequestsNodesTimelineItemsNodesAssignedEventActorMannequin(
     BaseModel
 ):
     typename__: Literal["Mannequin"] = Field(alias="__typename")
+    id: str
     login: str
     name: Optional[str]
+    created_at: datetime = Field(alias="createdAt")
+    updated_at: datetime = Field(alias="updatedAt")
 
 
 class PullRequestPageRepositoryPullRequestsNodesTimelineItemsNodesAssignedEventActorOrganization(
     BaseModel
 ):
     typename__: Literal["Organization"] = Field(alias="__typename")
+    id: str
     login: str
     name: Optional[str]
+    archived_at: Optional[datetime] = Field(alias="archivedAt")
+    created_at: datetime = Field(alias="createdAt")
+    updated_at: datetime = Field(alias="updatedAt")
 
 
 class PullRequestPageRepositoryPullRequestsNodesTimelineItemsNodesAssignedEventActorUser(
     BaseModel
 ):
     typename__: Literal["User"] = Field(alias="__typename")
+    id: str
     login: str
     name: Optional[str]
+    created_at: datetime = Field(alias="createdAt")
+    updated_at: datetime = Field(alias="updatedAt")
 
 
 class PullRequestPageRepositoryPullRequestsNodesTimelineItemsNodesAssignedEventAssigneeBot(
     BaseModel
 ):
     typename__: Literal["Bot"] = Field(alias="__typename")
+    id: str
     login: str
+    created_at: datetime = Field(alias="createdAt")
+    updated_at: datetime = Field(alias="updatedAt")
 
 
 class PullRequestPageRepositoryPullRequestsNodesTimelineItemsNodesAssignedEventAssigneeMannequin(
     BaseModel
 ):
     typename__: Literal["Mannequin"] = Field(alias="__typename")
+    id: str
     login: str
     name: Optional[str]
+    created_at: datetime = Field(alias="createdAt")
+    updated_at: datetime = Field(alias="updatedAt")
 
 
 class PullRequestPageRepositoryPullRequestsNodesTimelineItemsNodesAssignedEventAssigneeOrganization(
     BaseModel
 ):
     typename__: Literal["Organization"] = Field(alias="__typename")
+    id: str
     login: str
     name: Optional[str]
+    archived_at: Optional[datetime] = Field(alias="archivedAt")
+    created_at: datetime = Field(alias="createdAt")
+    updated_at: datetime = Field(alias="updatedAt")
 
 
 class PullRequestPageRepositoryPullRequestsNodesTimelineItemsNodesAssignedEventAssigneeUser(
     BaseModel
 ):
     typename__: Literal["User"] = Field(alias="__typename")
+    id: str
     login: str
     name: Optional[str]
+    created_at: datetime = Field(alias="createdAt")
+    updated_at: datetime = Field(alias="updatedAt")
 
 
 class PullRequestPageRepositoryPullRequestsNodesTimelineItemsNodesAutoMergeDisabledEvent(
@@ -372,7 +397,7 @@ class PullRequestPageRepositoryPullRequestsNodesTimelineItemsNodesClosedEvent(
             Field(discriminator="typename__"),
         ]
     ]
-    created_at: Any = Field(alias="createdAt")
+    created_at: datetime = Field(alias="createdAt")
     duplicate_of: Optional[
         Annotated[
             Union[
@@ -396,75 +421,118 @@ class PullRequestPageRepositoryPullRequestsNodesTimelineItemsNodesClosedEventAct
     BaseModel
 ):
     typename__: Literal["Bot"] = Field(alias="__typename")
+    id: str
     login: str
+    created_at: datetime = Field(alias="createdAt")
+    updated_at: datetime = Field(alias="updatedAt")
 
 
 class PullRequestPageRepositoryPullRequestsNodesTimelineItemsNodesClosedEventActorEnterpriseUserAccount(
     BaseModel
 ):
     typename__: Literal["EnterpriseUserAccount"] = Field(alias="__typename")
+    id: str
     login: str
     name: Optional[str]
+    created_at: datetime = Field(alias="createdAt")
+    updated_at: datetime = Field(alias="updatedAt")
 
 
 class PullRequestPageRepositoryPullRequestsNodesTimelineItemsNodesClosedEventActorMannequin(
     BaseModel
 ):
     typename__: Literal["Mannequin"] = Field(alias="__typename")
+    id: str
     login: str
     name: Optional[str]
+    created_at: datetime = Field(alias="createdAt")
+    updated_at: datetime = Field(alias="updatedAt")
 
 
 class PullRequestPageRepositoryPullRequestsNodesTimelineItemsNodesClosedEventActorOrganization(
     BaseModel
 ):
     typename__: Literal["Organization"] = Field(alias="__typename")
+    id: str
     login: str
     name: Optional[str]
+    archived_at: Optional[datetime] = Field(alias="archivedAt")
+    created_at: datetime = Field(alias="createdAt")
+    updated_at: datetime = Field(alias="updatedAt")
 
 
 class PullRequestPageRepositoryPullRequestsNodesTimelineItemsNodesClosedEventActorUser(
     BaseModel
 ):
     typename__: Literal["User"] = Field(alias="__typename")
+    id: str
     login: str
     name: Optional[str]
+    created_at: datetime = Field(alias="createdAt")
+    updated_at: datetime = Field(alias="updatedAt")
 
 
 class PullRequestPageRepositoryPullRequestsNodesTimelineItemsNodesClosedEventCloserCommit(
     BaseModel
 ):
     typename__: Literal["Commit"] = Field(alias="__typename")
-    oid: Any
+    id: str
+    oid: str
     abbreviated_oid: str = Field(alias="abbreviatedOid")
+    authored_date: datetime = Field(alias="authoredDate")
+    committed_date: datetime = Field(alias="committedDate")
 
 
 class PullRequestPageRepositoryPullRequestsNodesTimelineItemsNodesClosedEventCloserProjectV2(
     BaseModel
 ):
     typename__: Literal["ProjectV2"] = Field(alias="__typename")
+    id: str
     number: int
+    closed_at: Optional[datetime] = Field(alias="closedAt")
+    created_at: datetime = Field(alias="createdAt")
+    updated_at: datetime = Field(alias="updatedAt")
 
 
 class PullRequestPageRepositoryPullRequestsNodesTimelineItemsNodesClosedEventCloserPullRequest(
     BaseModel
 ):
     typename__: Literal["PullRequest"] = Field(alias="__typename")
+    id: str
     number: int
+    closed_at: Optional[datetime] = Field(alias="closedAt")
+    created_at: datetime = Field(alias="createdAt")
+    last_edited_at: Optional[datetime] = Field(alias="lastEditedAt")
+    merged_at: Optional[datetime] = Field(alias="mergedAt")
+    published_at: Optional[datetime] = Field(alias="publishedAt")
+    updated_at: datetime = Field(alias="updatedAt")
 
 
 class PullRequestPageRepositoryPullRequestsNodesTimelineItemsNodesClosedEventDuplicateOfIssue(
     BaseModel
 ):
     typename__: Literal["Issue"] = Field(alias="__typename")
+    id: str
     number: int
+    closed_at: Optional[datetime] = Field(alias="closedAt")
+    created_at: datetime = Field(alias="createdAt")
+    last_edited_at: Optional[datetime] = Field(alias="lastEditedAt")
+    published_at: Optional[datetime] = Field(alias="publishedAt")
+    updated_at: datetime = Field(alias="updatedAt")
 
 
 class PullRequestPageRepositoryPullRequestsNodesTimelineItemsNodesClosedEventDuplicateOfPullRequest(
     BaseModel
 ):
     typename__: Literal["PullRequest"] = Field(alias="__typename")
+    id: str
     number: int
+    closed_at: Optional[datetime] = Field(alias="closedAt")
+    created_at: datetime = Field(alias="createdAt")
+    last_edited_at: Optional[datetime] = Field(alias="lastEditedAt")
+    merged_at: Optional[datetime] = Field(alias="mergedAt")
+    published_at: Optional[datetime] = Field(alias="publishedAt")
+    updated_at: datetime = Field(alias="updatedAt")
 
 
 class PullRequestPageRepositoryPullRequestsNodesTimelineItemsNodesCommentDeletedEvent(
@@ -496,7 +564,7 @@ class PullRequestPageRepositoryPullRequestsNodesTimelineItemsNodesConvertToDraft
             Field(discriminator="typename__"),
         ]
     ]
-    created_at: Any = Field(alias="createdAt")
+    created_at: datetime = Field(alias="createdAt")
     id: str
 
 
@@ -510,39 +578,55 @@ class PullRequestPageRepositoryPullRequestsNodesTimelineItemsNodesConvertToDraft
     BaseModel
 ):
     typename__: Literal["Bot"] = Field(alias="__typename")
+    id: str
     login: str
+    created_at: datetime = Field(alias="createdAt")
+    updated_at: datetime = Field(alias="updatedAt")
 
 
 class PullRequestPageRepositoryPullRequestsNodesTimelineItemsNodesConvertToDraftEventActorEnterpriseUserAccount(
     BaseModel
 ):
     typename__: Literal["EnterpriseUserAccount"] = Field(alias="__typename")
+    id: str
     login: str
     name: Optional[str]
+    created_at: datetime = Field(alias="createdAt")
+    updated_at: datetime = Field(alias="updatedAt")
 
 
 class PullRequestPageRepositoryPullRequestsNodesTimelineItemsNodesConvertToDraftEventActorMannequin(
     BaseModel
 ):
     typename__: Literal["Mannequin"] = Field(alias="__typename")
+    id: str
     login: str
     name: Optional[str]
+    created_at: datetime = Field(alias="createdAt")
+    updated_at: datetime = Field(alias="updatedAt")
 
 
 class PullRequestPageRepositoryPullRequestsNodesTimelineItemsNodesConvertToDraftEventActorOrganization(
     BaseModel
 ):
     typename__: Literal["Organization"] = Field(alias="__typename")
+    id: str
     login: str
     name: Optional[str]
+    archived_at: Optional[datetime] = Field(alias="archivedAt")
+    created_at: datetime = Field(alias="createdAt")
+    updated_at: datetime = Field(alias="updatedAt")
 
 
 class PullRequestPageRepositoryPullRequestsNodesTimelineItemsNodesConvertToDraftEventActorUser(
     BaseModel
 ):
     typename__: Literal["User"] = Field(alias="__typename")
+    id: str
     login: str
     name: Optional[str]
+    created_at: datetime = Field(alias="createdAt")
+    updated_at: datetime = Field(alias="updatedAt")
 
 
 class PullRequestPageRepositoryPullRequestsNodesTimelineItemsNodesConvertedFromDraftEvent(
@@ -580,10 +664,10 @@ class PullRequestPageRepositoryPullRequestsNodesTimelineItemsNodesCrossReference
             Field(discriminator="typename__"),
         ]
     ]
-    created_at: Any = Field(alias="createdAt")
+    created_at: datetime = Field(alias="createdAt")
     id: str
     is_cross_repository: bool = Field(alias="isCrossRepository")
-    referenced_at: Any = Field(alias="referencedAt")
+    referenced_at: datetime = Field(alias="referencedAt")
     source: Union[
         "PullRequestPageRepositoryPullRequestsNodesTimelineItemsNodesCrossReferencedEventSourceIssue",
         "PullRequestPageRepositoryPullRequestsNodesTimelineItemsNodesCrossReferencedEventSourcePullRequest",
@@ -605,67 +689,109 @@ class PullRequestPageRepositoryPullRequestsNodesTimelineItemsNodesCrossReference
     BaseModel
 ):
     typename__: Literal["Bot"] = Field(alias="__typename")
+    id: str
     login: str
+    created_at: datetime = Field(alias="createdAt")
+    updated_at: datetime = Field(alias="updatedAt")
 
 
 class PullRequestPageRepositoryPullRequestsNodesTimelineItemsNodesCrossReferencedEventActorEnterpriseUserAccount(
     BaseModel
 ):
     typename__: Literal["EnterpriseUserAccount"] = Field(alias="__typename")
+    id: str
     login: str
     name: Optional[str]
+    created_at: datetime = Field(alias="createdAt")
+    updated_at: datetime = Field(alias="updatedAt")
 
 
 class PullRequestPageRepositoryPullRequestsNodesTimelineItemsNodesCrossReferencedEventActorMannequin(
     BaseModel
 ):
     typename__: Literal["Mannequin"] = Field(alias="__typename")
+    id: str
     login: str
     name: Optional[str]
+    created_at: datetime = Field(alias="createdAt")
+    updated_at: datetime = Field(alias="updatedAt")
 
 
 class PullRequestPageRepositoryPullRequestsNodesTimelineItemsNodesCrossReferencedEventActorOrganization(
     BaseModel
 ):
     typename__: Literal["Organization"] = Field(alias="__typename")
+    id: str
     login: str
     name: Optional[str]
+    archived_at: Optional[datetime] = Field(alias="archivedAt")
+    created_at: datetime = Field(alias="createdAt")
+    updated_at: datetime = Field(alias="updatedAt")
 
 
 class PullRequestPageRepositoryPullRequestsNodesTimelineItemsNodesCrossReferencedEventActorUser(
     BaseModel
 ):
     typename__: Literal["User"] = Field(alias="__typename")
+    id: str
     login: str
     name: Optional[str]
+    created_at: datetime = Field(alias="createdAt")
+    updated_at: datetime = Field(alias="updatedAt")
 
 
 class PullRequestPageRepositoryPullRequestsNodesTimelineItemsNodesCrossReferencedEventSourceIssue(
     BaseModel
 ):
     typename__: Literal["Issue"] = Field(alias="__typename")
+    id: str
     number: int
+    closed_at: Optional[datetime] = Field(alias="closedAt")
+    created_at: datetime = Field(alias="createdAt")
+    last_edited_at: Optional[datetime] = Field(alias="lastEditedAt")
+    published_at: Optional[datetime] = Field(alias="publishedAt")
+    updated_at: datetime = Field(alias="updatedAt")
 
 
 class PullRequestPageRepositoryPullRequestsNodesTimelineItemsNodesCrossReferencedEventSourcePullRequest(
     BaseModel
 ):
     typename__: Literal["PullRequest"] = Field(alias="__typename")
+    id: str
     number: int
+    closed_at: Optional[datetime] = Field(alias="closedAt")
+    created_at: datetime = Field(alias="createdAt")
+    last_edited_at: Optional[datetime] = Field(alias="lastEditedAt")
+    merged_at: Optional[datetime] = Field(alias="mergedAt")
+    published_at: Optional[datetime] = Field(alias="publishedAt")
+    updated_at: datetime = Field(alias="updatedAt")
 
 
 class PullRequestPageRepositoryPullRequestsNodesTimelineItemsNodesCrossReferencedEventTargetIssue(
     BaseModel
 ):
     typename__: Literal["Issue"] = Field(alias="__typename")
+    id: str
     number: int
+    closed_at: Optional[datetime] = Field(alias="closedAt")
+    created_at: datetime = Field(alias="createdAt")
+    last_edited_at: Optional[datetime] = Field(alias="lastEditedAt")
+    published_at: Optional[datetime] = Field(alias="publishedAt")
+    updated_at: datetime = Field(alias="updatedAt")
 
 
 class PullRequestPageRepositoryPullRequestsNodesTimelineItemsNodesCrossReferencedEventTargetPullRequest(
     BaseModel
 ):
     typename__: Literal["PullRequest"] = Field(alias="__typename")
+    id: str
     number: int
+    closed_at: Optional[datetime] = Field(alias="closedAt")
+    created_at: datetime = Field(alias="createdAt")
+    last_edited_at: Optional[datetime] = Field(alias="lastEditedAt")
+    merged_at: Optional[datetime] = Field(alias="mergedAt")
+    published_at: Optional[datetime] = Field(alias="publishedAt")
+    updated_at: datetime = Field(alias="updatedAt")
 
 
 class PullRequestPageRepositoryPullRequestsNodesTimelineItemsNodesDemilestonedEvent(
@@ -721,7 +847,7 @@ class PullRequestPageRepositoryPullRequestsNodesTimelineItemsNodesHeadRefForcePu
     before_commit: Optional[
         "PullRequestPageRepositoryPullRequestsNodesTimelineItemsNodesHeadRefForcePushedEventBeforeCommit"
     ] = Field(alias="beforeCommit")
-    created_at: Any = Field(alias="createdAt")
+    created_at: datetime = Field(alias="createdAt")
     id: str
     ref: Optional[
         "PullRequestPageRepositoryPullRequestsNodesTimelineItemsNodesHeadRefForcePushedEventRef"
@@ -738,58 +864,81 @@ class PullRequestPageRepositoryPullRequestsNodesTimelineItemsNodesHeadRefForcePu
     BaseModel
 ):
     typename__: Literal["Bot"] = Field(alias="__typename")
+    id: str
     login: str
+    created_at: datetime = Field(alias="createdAt")
+    updated_at: datetime = Field(alias="updatedAt")
 
 
 class PullRequestPageRepositoryPullRequestsNodesTimelineItemsNodesHeadRefForcePushedEventActorEnterpriseUserAccount(
     BaseModel
 ):
     typename__: Literal["EnterpriseUserAccount"] = Field(alias="__typename")
+    id: str
     login: str
     name: Optional[str]
+    created_at: datetime = Field(alias="createdAt")
+    updated_at: datetime = Field(alias="updatedAt")
 
 
 class PullRequestPageRepositoryPullRequestsNodesTimelineItemsNodesHeadRefForcePushedEventActorMannequin(
     BaseModel
 ):
     typename__: Literal["Mannequin"] = Field(alias="__typename")
+    id: str
     login: str
     name: Optional[str]
+    created_at: datetime = Field(alias="createdAt")
+    updated_at: datetime = Field(alias="updatedAt")
 
 
 class PullRequestPageRepositoryPullRequestsNodesTimelineItemsNodesHeadRefForcePushedEventActorOrganization(
     BaseModel
 ):
     typename__: Literal["Organization"] = Field(alias="__typename")
+    id: str
     login: str
     name: Optional[str]
+    archived_at: Optional[datetime] = Field(alias="archivedAt")
+    created_at: datetime = Field(alias="createdAt")
+    updated_at: datetime = Field(alias="updatedAt")
 
 
 class PullRequestPageRepositoryPullRequestsNodesTimelineItemsNodesHeadRefForcePushedEventActorUser(
     BaseModel
 ):
     typename__: Literal["User"] = Field(alias="__typename")
+    id: str
     login: str
     name: Optional[str]
+    created_at: datetime = Field(alias="createdAt")
+    updated_at: datetime = Field(alias="updatedAt")
 
 
 class PullRequestPageRepositoryPullRequestsNodesTimelineItemsNodesHeadRefForcePushedEventAfterCommit(
     BaseModel
 ):
-    oid: Any
+    id: str
+    oid: str
     abbreviated_oid: str = Field(alias="abbreviatedOid")
+    authored_date: datetime = Field(alias="authoredDate")
+    committed_date: datetime = Field(alias="committedDate")
 
 
 class PullRequestPageRepositoryPullRequestsNodesTimelineItemsNodesHeadRefForcePushedEventBeforeCommit(
     BaseModel
 ):
-    oid: Any
+    id: str
+    oid: str
     abbreviated_oid: str = Field(alias="abbreviatedOid")
+    authored_date: datetime = Field(alias="authoredDate")
+    committed_date: datetime = Field(alias="committedDate")
 
 
 class PullRequestPageRepositoryPullRequestsNodesTimelineItemsNodesHeadRefForcePushedEventRef(
     BaseModel
 ):
+    id: str
     name: str
 
 
@@ -817,7 +966,7 @@ class PullRequestPageRepositoryPullRequestsNodesTimelineItemsNodesIssueComment(
         ]
     ]
     author_association: CommentAuthorAssociation = Field(alias="authorAssociation")
-    created_at: Any = Field(alias="createdAt")
+    created_at: datetime = Field(alias="createdAt")
     created_via_email: bool = Field(alias="createdViaEmail")
     editor: Optional[
         Annotated[
@@ -837,25 +986,19 @@ class PullRequestPageRepositoryPullRequestsNodesTimelineItemsNodesIssueComment(
     includes_created_edit: bool = Field(alias="includesCreatedEdit")
     is_minimized: bool = Field(alias="isMinimized")
     is_pinned: Optional[bool] = Field(alias="isPinned")
-    last_edited_at: Optional[Any] = Field(alias="lastEditedAt")
+    last_edited_at: Optional[datetime] = Field(alias="lastEditedAt")
     minimized_reason: Optional[str] = Field(alias="minimizedReason")
-    pinned_at: Optional[Any] = Field(alias="pinnedAt")
+    pinned_at: Optional[datetime] = Field(alias="pinnedAt")
     pinned_by: Optional[
         "PullRequestPageRepositoryPullRequestsNodesTimelineItemsNodesIssueCommentPinnedBy"
     ] = Field(alias="pinnedBy")
-    published_at: Optional[Any] = Field(alias="publishedAt")
-    updated_at: Any = Field(alias="updatedAt")
-    viewer_can_delete: bool = Field(alias="viewerCanDelete")
-    viewer_can_minimize: bool = Field(alias="viewerCanMinimize")
-    viewer_can_pin: bool = Field(alias="viewerCanPin")
-    viewer_can_react: bool = Field(alias="viewerCanReact")
-    viewer_can_unminimize: bool = Field(alias="viewerCanUnminimize")
-    viewer_can_unpin: bool = Field(alias="viewerCanUnpin")
-    viewer_can_update: bool = Field(alias="viewerCanUpdate")
-    viewer_cannot_update_reasons: list[CommentCannotUpdateReason] = Field(
-        alias="viewerCannotUpdateReasons"
-    )
-    viewer_did_author: bool = Field(alias="viewerDidAuthor")
+    published_at: Optional[datetime] = Field(alias="publishedAt")
+    reaction_groups: Optional[
+        list[
+            "PullRequestPageRepositoryPullRequestsNodesTimelineItemsNodesIssueCommentReactionGroups"
+        ]
+    ] = Field(alias="reactionGroups")
+    updated_at: datetime = Field(alias="updatedAt")
 
 
 class PullRequestPageRepositoryPullRequestsNodesTimelineItemsNodesIssueCommentAuthorActor(
@@ -868,39 +1011,55 @@ class PullRequestPageRepositoryPullRequestsNodesTimelineItemsNodesIssueCommentAu
     BaseModel
 ):
     typename__: Literal["Bot"] = Field(alias="__typename")
+    id: str
     login: str
+    created_at: datetime = Field(alias="createdAt")
+    updated_at: datetime = Field(alias="updatedAt")
 
 
 class PullRequestPageRepositoryPullRequestsNodesTimelineItemsNodesIssueCommentAuthorEnterpriseUserAccount(
     BaseModel
 ):
     typename__: Literal["EnterpriseUserAccount"] = Field(alias="__typename")
+    id: str
     login: str
     name: Optional[str]
+    created_at: datetime = Field(alias="createdAt")
+    updated_at: datetime = Field(alias="updatedAt")
 
 
 class PullRequestPageRepositoryPullRequestsNodesTimelineItemsNodesIssueCommentAuthorMannequin(
     BaseModel
 ):
     typename__: Literal["Mannequin"] = Field(alias="__typename")
+    id: str
     login: str
     name: Optional[str]
+    created_at: datetime = Field(alias="createdAt")
+    updated_at: datetime = Field(alias="updatedAt")
 
 
 class PullRequestPageRepositoryPullRequestsNodesTimelineItemsNodesIssueCommentAuthorOrganization(
     BaseModel
 ):
     typename__: Literal["Organization"] = Field(alias="__typename")
+    id: str
     login: str
     name: Optional[str]
+    archived_at: Optional[datetime] = Field(alias="archivedAt")
+    created_at: datetime = Field(alias="createdAt")
+    updated_at: datetime = Field(alias="updatedAt")
 
 
 class PullRequestPageRepositoryPullRequestsNodesTimelineItemsNodesIssueCommentAuthorUser(
     BaseModel
 ):
     typename__: Literal["User"] = Field(alias="__typename")
+    id: str
     login: str
     name: Optional[str]
+    created_at: datetime = Field(alias="createdAt")
+    updated_at: datetime = Field(alias="updatedAt")
 
 
 class PullRequestPageRepositoryPullRequestsNodesTimelineItemsNodesIssueCommentEditorActor(
@@ -913,46 +1072,71 @@ class PullRequestPageRepositoryPullRequestsNodesTimelineItemsNodesIssueCommentEd
     BaseModel
 ):
     typename__: Literal["Bot"] = Field(alias="__typename")
+    id: str
     login: str
+    created_at: datetime = Field(alias="createdAt")
+    updated_at: datetime = Field(alias="updatedAt")
 
 
 class PullRequestPageRepositoryPullRequestsNodesTimelineItemsNodesIssueCommentEditorEnterpriseUserAccount(
     BaseModel
 ):
     typename__: Literal["EnterpriseUserAccount"] = Field(alias="__typename")
+    id: str
     login: str
     name: Optional[str]
+    created_at: datetime = Field(alias="createdAt")
+    updated_at: datetime = Field(alias="updatedAt")
 
 
 class PullRequestPageRepositoryPullRequestsNodesTimelineItemsNodesIssueCommentEditorMannequin(
     BaseModel
 ):
     typename__: Literal["Mannequin"] = Field(alias="__typename")
+    id: str
     login: str
     name: Optional[str]
+    created_at: datetime = Field(alias="createdAt")
+    updated_at: datetime = Field(alias="updatedAt")
 
 
 class PullRequestPageRepositoryPullRequestsNodesTimelineItemsNodesIssueCommentEditorOrganization(
     BaseModel
 ):
     typename__: Literal["Organization"] = Field(alias="__typename")
+    id: str
     login: str
     name: Optional[str]
+    archived_at: Optional[datetime] = Field(alias="archivedAt")
+    created_at: datetime = Field(alias="createdAt")
+    updated_at: datetime = Field(alias="updatedAt")
 
 
 class PullRequestPageRepositoryPullRequestsNodesTimelineItemsNodesIssueCommentEditorUser(
     BaseModel
 ):
     typename__: Literal["User"] = Field(alias="__typename")
+    id: str
     login: str
     name: Optional[str]
+    created_at: datetime = Field(alias="createdAt")
+    updated_at: datetime = Field(alias="updatedAt")
 
 
 class PullRequestPageRepositoryPullRequestsNodesTimelineItemsNodesIssueCommentPinnedBy(
     BaseModel
 ):
+    id: str
     login: str
     name: Optional[str]
+    created_at: datetime = Field(alias="createdAt")
+    updated_at: datetime = Field(alias="updatedAt")
+
+
+class PullRequestPageRepositoryPullRequestsNodesTimelineItemsNodesIssueCommentReactionGroups(
+    BaseModel
+):
+    created_at: Optional[datetime] = Field(alias="createdAt")
 
 
 class PullRequestPageRepositoryPullRequestsNodesTimelineItemsNodesIssueCommentPinnedEvent(
@@ -1020,7 +1204,7 @@ class PullRequestPageRepositoryPullRequestsNodesTimelineItemsNodesLabeledEvent(
             Field(discriminator="typename__"),
         ]
     ]
-    created_at: Any = Field(alias="createdAt")
+    created_at: datetime = Field(alias="createdAt")
     id: str
     label: (
         "PullRequestPageRepositoryPullRequestsNodesTimelineItemsNodesLabeledEventLabel"
@@ -1037,45 +1221,64 @@ class PullRequestPageRepositoryPullRequestsNodesTimelineItemsNodesLabeledEventAc
     BaseModel
 ):
     typename__: Literal["Bot"] = Field(alias="__typename")
+    id: str
     login: str
+    created_at: datetime = Field(alias="createdAt")
+    updated_at: datetime = Field(alias="updatedAt")
 
 
 class PullRequestPageRepositoryPullRequestsNodesTimelineItemsNodesLabeledEventActorEnterpriseUserAccount(
     BaseModel
 ):
     typename__: Literal["EnterpriseUserAccount"] = Field(alias="__typename")
+    id: str
     login: str
     name: Optional[str]
+    created_at: datetime = Field(alias="createdAt")
+    updated_at: datetime = Field(alias="updatedAt")
 
 
 class PullRequestPageRepositoryPullRequestsNodesTimelineItemsNodesLabeledEventActorMannequin(
     BaseModel
 ):
     typename__: Literal["Mannequin"] = Field(alias="__typename")
+    id: str
     login: str
     name: Optional[str]
+    created_at: datetime = Field(alias="createdAt")
+    updated_at: datetime = Field(alias="updatedAt")
 
 
 class PullRequestPageRepositoryPullRequestsNodesTimelineItemsNodesLabeledEventActorOrganization(
     BaseModel
 ):
     typename__: Literal["Organization"] = Field(alias="__typename")
+    id: str
     login: str
     name: Optional[str]
+    archived_at: Optional[datetime] = Field(alias="archivedAt")
+    created_at: datetime = Field(alias="createdAt")
+    updated_at: datetime = Field(alias="updatedAt")
 
 
 class PullRequestPageRepositoryPullRequestsNodesTimelineItemsNodesLabeledEventActorUser(
     BaseModel
 ):
     typename__: Literal["User"] = Field(alias="__typename")
+    id: str
     login: str
     name: Optional[str]
+    created_at: datetime = Field(alias="createdAt")
+    updated_at: datetime = Field(alias="updatedAt")
 
 
 class PullRequestPageRepositoryPullRequestsNodesTimelineItemsNodesLabeledEventLabel(
     BaseModel
 ):
+    id: str
     name: str
+    created_at: Optional[datetime] = Field(alias="createdAt")
+    updated_at: Optional[datetime] = Field(alias="updatedAt")
 
 
 class PullRequestPageRepositoryPullRequestsNodesTimelineItemsNodesLockedEvent(
@@ -1116,7 +1319,7 @@ class PullRequestPageRepositoryPullRequestsNodesTimelineItemsNodesMergedEvent(
     merged_event_commit: Optional[
         "PullRequestPageRepositoryPullRequestsNodesTimelineItemsNodesMergedEventMergedEventCommit"
     ] = Field(alias="mergedEvent_commit")
-    created_at: Any = Field(alias="createdAt")
+    created_at: datetime = Field(alias="createdAt")
     id: str
     merge_ref: Optional[
         "PullRequestPageRepositoryPullRequestsNodesTimelineItemsNodesMergedEventMergeRef"
@@ -1134,51 +1337,71 @@ class PullRequestPageRepositoryPullRequestsNodesTimelineItemsNodesMergedEventAct
     BaseModel
 ):
     typename__: Literal["Bot"] = Field(alias="__typename")
+    id: str
     login: str
+    created_at: datetime = Field(alias="createdAt")
+    updated_at: datetime = Field(alias="updatedAt")
 
 
 class PullRequestPageRepositoryPullRequestsNodesTimelineItemsNodesMergedEventActorEnterpriseUserAccount(
     BaseModel
 ):
     typename__: Literal["EnterpriseUserAccount"] = Field(alias="__typename")
+    id: str
     login: str
     name: Optional[str]
+    created_at: datetime = Field(alias="createdAt")
+    updated_at: datetime = Field(alias="updatedAt")
 
 
 class PullRequestPageRepositoryPullRequestsNodesTimelineItemsNodesMergedEventActorMannequin(
     BaseModel
 ):
     typename__: Literal["Mannequin"] = Field(alias="__typename")
+    id: str
     login: str
     name: Optional[str]
+    created_at: datetime = Field(alias="createdAt")
+    updated_at: datetime = Field(alias="updatedAt")
 
 
 class PullRequestPageRepositoryPullRequestsNodesTimelineItemsNodesMergedEventActorOrganization(
     BaseModel
 ):
     typename__: Literal["Organization"] = Field(alias="__typename")
+    id: str
     login: str
     name: Optional[str]
+    archived_at: Optional[datetime] = Field(alias="archivedAt")
+    created_at: datetime = Field(alias="createdAt")
+    updated_at: datetime = Field(alias="updatedAt")
 
 
 class PullRequestPageRepositoryPullRequestsNodesTimelineItemsNodesMergedEventActorUser(
     BaseModel
 ):
     typename__: Literal["User"] = Field(alias="__typename")
+    id: str
     login: str
     name: Optional[str]
+    created_at: datetime = Field(alias="createdAt")
+    updated_at: datetime = Field(alias="updatedAt")
 
 
 class PullRequestPageRepositoryPullRequestsNodesTimelineItemsNodesMergedEventMergedEventCommit(
     BaseModel
 ):
-    oid: Any
+    id: str
+    oid: str
     abbreviated_oid: str = Field(alias="abbreviatedOid")
+    authored_date: datetime = Field(alias="authoredDate")
+    committed_date: datetime = Field(alias="committedDate")
 
 
 class PullRequestPageRepositoryPullRequestsNodesTimelineItemsNodesMergedEventMergeRef(
     BaseModel
 ):
+    id: str
     name: str
 
 
@@ -1231,8 +1454,11 @@ class PullRequestPageRepositoryPullRequestsNodesTimelineItemsNodesPullRequestCom
 class PullRequestPageRepositoryPullRequestsNodesTimelineItemsNodesPullRequestCommitPullRequestCommitCommit(
     BaseModel
 ):
-    oid: Any
+    id: str
+    oid: str
     abbreviated_oid: str = Field(alias="abbreviatedOid")
+    authored_date: datetime = Field(alias="authoredDate")
+    committed_date: datetime = Field(alias="committedDate")
 
 
 class PullRequestPageRepositoryPullRequestsNodesTimelineItemsNodesPullRequestCommitCommentThread(
@@ -1263,7 +1489,7 @@ class PullRequestPageRepositoryPullRequestsNodesTimelineItemsNodesPullRequestRev
     pull_request_review_commit: Optional[
         "PullRequestPageRepositoryPullRequestsNodesTimelineItemsNodesPullRequestReviewPullRequestReviewCommit"
     ] = Field(alias="pullRequestReview_commit")
-    created_at: Any = Field(alias="createdAt")
+    created_at: datetime = Field(alias="createdAt")
     created_via_email: bool = Field(alias="createdViaEmail")
     editor: Optional[
         Annotated[
@@ -1282,21 +1508,17 @@ class PullRequestPageRepositoryPullRequestsNodesTimelineItemsNodesPullRequestRev
     id: str
     includes_created_edit: bool = Field(alias="includesCreatedEdit")
     is_minimized: bool = Field(alias="isMinimized")
-    last_edited_at: Optional[Any] = Field(alias="lastEditedAt")
+    last_edited_at: Optional[datetime] = Field(alias="lastEditedAt")
     minimized_reason: Optional[str] = Field(alias="minimizedReason")
-    published_at: Optional[Any] = Field(alias="publishedAt")
+    published_at: Optional[datetime] = Field(alias="publishedAt")
+    reaction_groups: Optional[
+        list[
+            "PullRequestPageRepositoryPullRequestsNodesTimelineItemsNodesPullRequestReviewReactionGroups"
+        ]
+    ] = Field(alias="reactionGroups")
     state: PullRequestReviewState
-    submitted_at: Optional[Any] = Field(alias="submittedAt")
-    updated_at: Any = Field(alias="updatedAt")
-    viewer_can_delete: bool = Field(alias="viewerCanDelete")
-    viewer_can_minimize: bool = Field(alias="viewerCanMinimize")
-    viewer_can_react: bool = Field(alias="viewerCanReact")
-    viewer_can_unminimize: bool = Field(alias="viewerCanUnminimize")
-    viewer_can_update: bool = Field(alias="viewerCanUpdate")
-    viewer_cannot_update_reasons: list[CommentCannotUpdateReason] = Field(
-        alias="viewerCannotUpdateReasons"
-    )
-    viewer_did_author: bool = Field(alias="viewerDidAuthor")
+    submitted_at: Optional[datetime] = Field(alias="submittedAt")
+    updated_at: datetime = Field(alias="updatedAt")
 
 
 class PullRequestPageRepositoryPullRequestsNodesTimelineItemsNodesPullRequestReviewAuthorActor(
@@ -1309,46 +1531,65 @@ class PullRequestPageRepositoryPullRequestsNodesTimelineItemsNodesPullRequestRev
     BaseModel
 ):
     typename__: Literal["Bot"] = Field(alias="__typename")
+    id: str
     login: str
+    created_at: datetime = Field(alias="createdAt")
+    updated_at: datetime = Field(alias="updatedAt")
 
 
 class PullRequestPageRepositoryPullRequestsNodesTimelineItemsNodesPullRequestReviewAuthorEnterpriseUserAccount(
     BaseModel
 ):
     typename__: Literal["EnterpriseUserAccount"] = Field(alias="__typename")
+    id: str
     login: str
     name: Optional[str]
+    created_at: datetime = Field(alias="createdAt")
+    updated_at: datetime = Field(alias="updatedAt")
 
 
 class PullRequestPageRepositoryPullRequestsNodesTimelineItemsNodesPullRequestReviewAuthorMannequin(
     BaseModel
 ):
     typename__: Literal["Mannequin"] = Field(alias="__typename")
+    id: str
     login: str
     name: Optional[str]
+    created_at: datetime = Field(alias="createdAt")
+    updated_at: datetime = Field(alias="updatedAt")
 
 
 class PullRequestPageRepositoryPullRequestsNodesTimelineItemsNodesPullRequestReviewAuthorOrganization(
     BaseModel
 ):
     typename__: Literal["Organization"] = Field(alias="__typename")
+    id: str
     login: str
     name: Optional[str]
+    archived_at: Optional[datetime] = Field(alias="archivedAt")
+    created_at: datetime = Field(alias="createdAt")
+    updated_at: datetime = Field(alias="updatedAt")
 
 
 class PullRequestPageRepositoryPullRequestsNodesTimelineItemsNodesPullRequestReviewAuthorUser(
     BaseModel
 ):
     typename__: Literal["User"] = Field(alias="__typename")
+    id: str
     login: str
     name: Optional[str]
+    created_at: datetime = Field(alias="createdAt")
+    updated_at: datetime = Field(alias="updatedAt")
 
 
 class PullRequestPageRepositoryPullRequestsNodesTimelineItemsNodesPullRequestReviewPullRequestReviewCommit(
     BaseModel
 ):
-    oid: Any
+    id: str
+    oid: str
     abbreviated_oid: str = Field(alias="abbreviatedOid")
+    authored_date: datetime = Field(alias="authoredDate")
+    committed_date: datetime = Field(alias="committedDate")
 
 
 class PullRequestPageRepositoryPullRequestsNodesTimelineItemsNodesPullRequestReviewEditorActor(
@@ -1361,39 +1602,61 @@ class PullRequestPageRepositoryPullRequestsNodesTimelineItemsNodesPullRequestRev
     BaseModel
 ):
     typename__: Literal["Bot"] = Field(alias="__typename")
+    id: str
     login: str
+    created_at: datetime = Field(alias="createdAt")
+    updated_at: datetime = Field(alias="updatedAt")
 
 
 class PullRequestPageRepositoryPullRequestsNodesTimelineItemsNodesPullRequestReviewEditorEnterpriseUserAccount(
     BaseModel
 ):
     typename__: Literal["EnterpriseUserAccount"] = Field(alias="__typename")
+    id: str
     login: str
     name: Optional[str]
+    created_at: datetime = Field(alias="createdAt")
+    updated_at: datetime = Field(alias="updatedAt")
 
 
 class PullRequestPageRepositoryPullRequestsNodesTimelineItemsNodesPullRequestReviewEditorMannequin(
     BaseModel
 ):
     typename__: Literal["Mannequin"] = Field(alias="__typename")
+    id: str
     login: str
     name: Optional[str]
+    created_at: datetime = Field(alias="createdAt")
+    updated_at: datetime = Field(alias="updatedAt")
 
 
 class PullRequestPageRepositoryPullRequestsNodesTimelineItemsNodesPullRequestReviewEditorOrganization(
     BaseModel
 ):
     typename__: Literal["Organization"] = Field(alias="__typename")
+    id: str
     login: str
     name: Optional[str]
+    archived_at: Optional[datetime] = Field(alias="archivedAt")
+    created_at: datetime = Field(alias="createdAt")
+    updated_at: datetime = Field(alias="updatedAt")
 
 
 class PullRequestPageRepositoryPullRequestsNodesTimelineItemsNodesPullRequestReviewEditorUser(
     BaseModel
 ):
     typename__: Literal["User"] = Field(alias="__typename")
+    id: str
     login: str
     name: Optional[str]
+    created_at: datetime = Field(alias="createdAt")
+    updated_at: datetime = Field(alias="updatedAt")
+
+
+class PullRequestPageRepositoryPullRequestsNodesTimelineItemsNodesPullRequestReviewReactionGroups(
+    BaseModel
+):
+    created_at: Optional[datetime] = Field(alias="createdAt")
 
 
 class PullRequestPageRepositoryPullRequestsNodesTimelineItemsNodesPullRequestReviewThread(
@@ -1425,7 +1688,7 @@ class PullRequestPageRepositoryPullRequestsNodesTimelineItemsNodesReadyForReview
             Field(discriminator="typename__"),
         ]
     ]
-    created_at: Any = Field(alias="createdAt")
+    created_at: datetime = Field(alias="createdAt")
     id: str
 
 
@@ -1439,39 +1702,55 @@ class PullRequestPageRepositoryPullRequestsNodesTimelineItemsNodesReadyForReview
     BaseModel
 ):
     typename__: Literal["Bot"] = Field(alias="__typename")
+    id: str
     login: str
+    created_at: datetime = Field(alias="createdAt")
+    updated_at: datetime = Field(alias="updatedAt")
 
 
 class PullRequestPageRepositoryPullRequestsNodesTimelineItemsNodesReadyForReviewEventActorEnterpriseUserAccount(
     BaseModel
 ):
     typename__: Literal["EnterpriseUserAccount"] = Field(alias="__typename")
+    id: str
     login: str
     name: Optional[str]
+    created_at: datetime = Field(alias="createdAt")
+    updated_at: datetime = Field(alias="updatedAt")
 
 
 class PullRequestPageRepositoryPullRequestsNodesTimelineItemsNodesReadyForReviewEventActorMannequin(
     BaseModel
 ):
     typename__: Literal["Mannequin"] = Field(alias="__typename")
+    id: str
     login: str
     name: Optional[str]
+    created_at: datetime = Field(alias="createdAt")
+    updated_at: datetime = Field(alias="updatedAt")
 
 
 class PullRequestPageRepositoryPullRequestsNodesTimelineItemsNodesReadyForReviewEventActorOrganization(
     BaseModel
 ):
     typename__: Literal["Organization"] = Field(alias="__typename")
+    id: str
     login: str
     name: Optional[str]
+    archived_at: Optional[datetime] = Field(alias="archivedAt")
+    created_at: datetime = Field(alias="createdAt")
+    updated_at: datetime = Field(alias="updatedAt")
 
 
 class PullRequestPageRepositoryPullRequestsNodesTimelineItemsNodesReadyForReviewEventActorUser(
     BaseModel
 ):
     typename__: Literal["User"] = Field(alias="__typename")
+    id: str
     login: str
     name: Optional[str]
+    created_at: datetime = Field(alias="createdAt")
+    updated_at: datetime = Field(alias="updatedAt")
 
 
 class PullRequestPageRepositoryPullRequestsNodesTimelineItemsNodesReferencedEvent(
@@ -1521,7 +1800,7 @@ class PullRequestPageRepositoryPullRequestsNodesTimelineItemsNodesReopenedEvent(
             Field(discriminator="typename__"),
         ]
     ]
-    created_at: Any = Field(alias="createdAt")
+    created_at: datetime = Field(alias="createdAt")
     id: str
     state_reason: Optional[IssueStateReason] = Field(alias="stateReason")
 
@@ -1536,39 +1815,55 @@ class PullRequestPageRepositoryPullRequestsNodesTimelineItemsNodesReopenedEventA
     BaseModel
 ):
     typename__: Literal["Bot"] = Field(alias="__typename")
+    id: str
     login: str
+    created_at: datetime = Field(alias="createdAt")
+    updated_at: datetime = Field(alias="updatedAt")
 
 
 class PullRequestPageRepositoryPullRequestsNodesTimelineItemsNodesReopenedEventActorEnterpriseUserAccount(
     BaseModel
 ):
     typename__: Literal["EnterpriseUserAccount"] = Field(alias="__typename")
+    id: str
     login: str
     name: Optional[str]
+    created_at: datetime = Field(alias="createdAt")
+    updated_at: datetime = Field(alias="updatedAt")
 
 
 class PullRequestPageRepositoryPullRequestsNodesTimelineItemsNodesReopenedEventActorMannequin(
     BaseModel
 ):
     typename__: Literal["Mannequin"] = Field(alias="__typename")
+    id: str
     login: str
     name: Optional[str]
+    created_at: datetime = Field(alias="createdAt")
+    updated_at: datetime = Field(alias="updatedAt")
 
 
 class PullRequestPageRepositoryPullRequestsNodesTimelineItemsNodesReopenedEventActorOrganization(
     BaseModel
 ):
     typename__: Literal["Organization"] = Field(alias="__typename")
+    id: str
     login: str
     name: Optional[str]
+    archived_at: Optional[datetime] = Field(alias="archivedAt")
+    created_at: datetime = Field(alias="createdAt")
+    updated_at: datetime = Field(alias="updatedAt")
 
 
 class PullRequestPageRepositoryPullRequestsNodesTimelineItemsNodesReopenedEventActorUser(
     BaseModel
 ):
     typename__: Literal["User"] = Field(alias="__typename")
+    id: str
     login: str
     name: Optional[str]
+    created_at: datetime = Field(alias="createdAt")
+    updated_at: datetime = Field(alias="updatedAt")
 
 
 class PullRequestPageRepositoryPullRequestsNodesTimelineItemsNodesReviewDismissedEvent(
@@ -1588,10 +1883,16 @@ class PullRequestPageRepositoryPullRequestsNodesTimelineItemsNodesReviewDismisse
             Field(discriminator="typename__"),
         ]
     ]
-    created_at: Any = Field(alias="createdAt")
+    created_at: datetime = Field(alias="createdAt")
     dismissal_message: Optional[str] = Field(alias="dismissalMessage")
     id: str
     previous_review_state: PullRequestReviewState = Field(alias="previousReviewState")
+    pull_request_commit: Optional[
+        "PullRequestPageRepositoryPullRequestsNodesTimelineItemsNodesReviewDismissedEventPullRequestCommit"
+    ] = Field(alias="pullRequestCommit")
+    review: Optional[
+        "PullRequestPageRepositoryPullRequestsNodesTimelineItemsNodesReviewDismissedEventReview"
+    ]
 
 
 class PullRequestPageRepositoryPullRequestsNodesTimelineItemsNodesReviewDismissedEventActorActor(
@@ -1604,39 +1905,72 @@ class PullRequestPageRepositoryPullRequestsNodesTimelineItemsNodesReviewDismisse
     BaseModel
 ):
     typename__: Literal["Bot"] = Field(alias="__typename")
+    id: str
     login: str
+    created_at: datetime = Field(alias="createdAt")
+    updated_at: datetime = Field(alias="updatedAt")
 
 
 class PullRequestPageRepositoryPullRequestsNodesTimelineItemsNodesReviewDismissedEventActorEnterpriseUserAccount(
     BaseModel
 ):
     typename__: Literal["EnterpriseUserAccount"] = Field(alias="__typename")
+    id: str
     login: str
     name: Optional[str]
+    created_at: datetime = Field(alias="createdAt")
+    updated_at: datetime = Field(alias="updatedAt")
 
 
 class PullRequestPageRepositoryPullRequestsNodesTimelineItemsNodesReviewDismissedEventActorMannequin(
     BaseModel
 ):
     typename__: Literal["Mannequin"] = Field(alias="__typename")
+    id: str
     login: str
     name: Optional[str]
+    created_at: datetime = Field(alias="createdAt")
+    updated_at: datetime = Field(alias="updatedAt")
 
 
 class PullRequestPageRepositoryPullRequestsNodesTimelineItemsNodesReviewDismissedEventActorOrganization(
     BaseModel
 ):
     typename__: Literal["Organization"] = Field(alias="__typename")
+    id: str
     login: str
     name: Optional[str]
+    archived_at: Optional[datetime] = Field(alias="archivedAt")
+    created_at: datetime = Field(alias="createdAt")
+    updated_at: datetime = Field(alias="updatedAt")
 
 
 class PullRequestPageRepositoryPullRequestsNodesTimelineItemsNodesReviewDismissedEventActorUser(
     BaseModel
 ):
     typename__: Literal["User"] = Field(alias="__typename")
+    id: str
     login: str
     name: Optional[str]
+    created_at: datetime = Field(alias="createdAt")
+    updated_at: datetime = Field(alias="updatedAt")
+
+
+class PullRequestPageRepositoryPullRequestsNodesTimelineItemsNodesReviewDismissedEventPullRequestCommit(
+    BaseModel
+):
+    id: str
+
+
+class PullRequestPageRepositoryPullRequestsNodesTimelineItemsNodesReviewDismissedEventReview(
+    BaseModel
+):
+    id: str
+    created_at: datetime = Field(alias="createdAt")
+    last_edited_at: Optional[datetime] = Field(alias="lastEditedAt")
+    published_at: Optional[datetime] = Field(alias="publishedAt")
+    submitted_at: Optional[datetime] = Field(alias="submittedAt")
+    updated_at: datetime = Field(alias="updatedAt")
 
 
 class PullRequestPageRepositoryPullRequestsNodesTimelineItemsNodesReviewRequestRemovedEvent(
@@ -1656,7 +1990,7 @@ class PullRequestPageRepositoryPullRequestsNodesTimelineItemsNodesReviewRequestR
             Field(discriminator="typename__"),
         ]
     ]
-    created_at: Any = Field(alias="createdAt")
+    created_at: datetime = Field(alias="createdAt")
     id: str
     requested_reviewer: Optional[
         Annotated[
@@ -1682,78 +2016,109 @@ class PullRequestPageRepositoryPullRequestsNodesTimelineItemsNodesReviewRequestR
     BaseModel
 ):
     typename__: Literal["Bot"] = Field(alias="__typename")
+    id: str
     login: str
+    created_at: datetime = Field(alias="createdAt")
+    updated_at: datetime = Field(alias="updatedAt")
 
 
 class PullRequestPageRepositoryPullRequestsNodesTimelineItemsNodesReviewRequestRemovedEventActorEnterpriseUserAccount(
     BaseModel
 ):
     typename__: Literal["EnterpriseUserAccount"] = Field(alias="__typename")
+    id: str
     login: str
     name: Optional[str]
+    created_at: datetime = Field(alias="createdAt")
+    updated_at: datetime = Field(alias="updatedAt")
 
 
 class PullRequestPageRepositoryPullRequestsNodesTimelineItemsNodesReviewRequestRemovedEventActorMannequin(
     BaseModel
 ):
     typename__: Literal["Mannequin"] = Field(alias="__typename")
+    id: str
     login: str
     name: Optional[str]
+    created_at: datetime = Field(alias="createdAt")
+    updated_at: datetime = Field(alias="updatedAt")
 
 
 class PullRequestPageRepositoryPullRequestsNodesTimelineItemsNodesReviewRequestRemovedEventActorOrganization(
     BaseModel
 ):
     typename__: Literal["Organization"] = Field(alias="__typename")
+    id: str
     login: str
     name: Optional[str]
+    archived_at: Optional[datetime] = Field(alias="archivedAt")
+    created_at: datetime = Field(alias="createdAt")
+    updated_at: datetime = Field(alias="updatedAt")
 
 
 class PullRequestPageRepositoryPullRequestsNodesTimelineItemsNodesReviewRequestRemovedEventActorUser(
     BaseModel
 ):
     typename__: Literal["User"] = Field(alias="__typename")
+    id: str
     login: str
     name: Optional[str]
+    created_at: datetime = Field(alias="createdAt")
+    updated_at: datetime = Field(alias="updatedAt")
 
 
 class PullRequestPageRepositoryPullRequestsNodesTimelineItemsNodesReviewRequestRemovedEventRequestedReviewerBot(
     BaseModel
 ):
     typename__: Literal["Bot"] = Field(alias="__typename")
+    id: str
     login: str
+    created_at: datetime = Field(alias="createdAt")
+    updated_at: datetime = Field(alias="updatedAt")
 
 
 class PullRequestPageRepositoryPullRequestsNodesTimelineItemsNodesReviewRequestRemovedEventRequestedReviewerEnterpriseTeam(
     BaseModel
 ):
     typename__: Literal["EnterpriseTeam"] = Field(alias="__typename")
+    id: str
     slug: str
     enterprise_team_name: str = Field(alias="enterpriseTeam_name")
+    created_at: datetime = Field(alias="createdAt")
+    updated_at: datetime = Field(alias="updatedAt")
 
 
 class PullRequestPageRepositoryPullRequestsNodesTimelineItemsNodesReviewRequestRemovedEventRequestedReviewerMannequin(
     BaseModel
 ):
     typename__: Literal["Mannequin"] = Field(alias="__typename")
+    id: str
     login: str
     mannequin_name: Optional[str]
+    created_at: datetime = Field(alias="createdAt")
+    updated_at: datetime = Field(alias="updatedAt")
 
 
 class PullRequestPageRepositoryPullRequestsNodesTimelineItemsNodesReviewRequestRemovedEventRequestedReviewerTeam(
     BaseModel
 ):
     typename__: Literal["Team"] = Field(alias="__typename")
+    id: str
     slug: str
     team_name: str
+    created_at: datetime = Field(alias="createdAt")
+    updated_at: datetime = Field(alias="updatedAt")
 
 
 class PullRequestPageRepositoryPullRequestsNodesTimelineItemsNodesReviewRequestRemovedEventRequestedReviewerUser(
     BaseModel
 ):
     typename__: Literal["User"] = Field(alias="__typename")
+    id: str
     login: str
     user_name: Optional[str]
+    created_at: datetime = Field(alias="createdAt")
+    updated_at: datetime = Field(alias="updatedAt")
 
 
 class PullRequestPageRepositoryPullRequestsNodesTimelineItemsNodesReviewRequestedEvent(
@@ -1773,7 +2138,7 @@ class PullRequestPageRepositoryPullRequestsNodesTimelineItemsNodesReviewRequeste
             Field(discriminator="typename__"),
         ]
     ]
-    created_at: Any = Field(alias="createdAt")
+    created_at: datetime = Field(alias="createdAt")
     id: str
     requested_reviewer: Optional[
         Annotated[
@@ -1799,78 +2164,109 @@ class PullRequestPageRepositoryPullRequestsNodesTimelineItemsNodesReviewRequeste
     BaseModel
 ):
     typename__: Literal["Bot"] = Field(alias="__typename")
+    id: str
     login: str
+    created_at: datetime = Field(alias="createdAt")
+    updated_at: datetime = Field(alias="updatedAt")
 
 
 class PullRequestPageRepositoryPullRequestsNodesTimelineItemsNodesReviewRequestedEventActorEnterpriseUserAccount(
     BaseModel
 ):
     typename__: Literal["EnterpriseUserAccount"] = Field(alias="__typename")
+    id: str
     login: str
     name: Optional[str]
+    created_at: datetime = Field(alias="createdAt")
+    updated_at: datetime = Field(alias="updatedAt")
 
 
 class PullRequestPageRepositoryPullRequestsNodesTimelineItemsNodesReviewRequestedEventActorMannequin(
     BaseModel
 ):
     typename__: Literal["Mannequin"] = Field(alias="__typename")
+    id: str
     login: str
     name: Optional[str]
+    created_at: datetime = Field(alias="createdAt")
+    updated_at: datetime = Field(alias="updatedAt")
 
 
 class PullRequestPageRepositoryPullRequestsNodesTimelineItemsNodesReviewRequestedEventActorOrganization(
     BaseModel
 ):
     typename__: Literal["Organization"] = Field(alias="__typename")
+    id: str
     login: str
     name: Optional[str]
+    archived_at: Optional[datetime] = Field(alias="archivedAt")
+    created_at: datetime = Field(alias="createdAt")
+    updated_at: datetime = Field(alias="updatedAt")
 
 
 class PullRequestPageRepositoryPullRequestsNodesTimelineItemsNodesReviewRequestedEventActorUser(
     BaseModel
 ):
     typename__: Literal["User"] = Field(alias="__typename")
+    id: str
     login: str
     name: Optional[str]
+    created_at: datetime = Field(alias="createdAt")
+    updated_at: datetime = Field(alias="updatedAt")
 
 
 class PullRequestPageRepositoryPullRequestsNodesTimelineItemsNodesReviewRequestedEventRequestedReviewerBot(
     BaseModel
 ):
     typename__: Literal["Bot"] = Field(alias="__typename")
+    id: str
     login: str
+    created_at: datetime = Field(alias="createdAt")
+    updated_at: datetime = Field(alias="updatedAt")
 
 
 class PullRequestPageRepositoryPullRequestsNodesTimelineItemsNodesReviewRequestedEventRequestedReviewerEnterpriseTeam(
     BaseModel
 ):
     typename__: Literal["EnterpriseTeam"] = Field(alias="__typename")
+    id: str
     slug: str
     enterprise_team_name: str = Field(alias="enterpriseTeam_name")
+    created_at: datetime = Field(alias="createdAt")
+    updated_at: datetime = Field(alias="updatedAt")
 
 
 class PullRequestPageRepositoryPullRequestsNodesTimelineItemsNodesReviewRequestedEventRequestedReviewerMannequin(
     BaseModel
 ):
     typename__: Literal["Mannequin"] = Field(alias="__typename")
+    id: str
     login: str
     mannequin_name: Optional[str]
+    created_at: datetime = Field(alias="createdAt")
+    updated_at: datetime = Field(alias="updatedAt")
 
 
 class PullRequestPageRepositoryPullRequestsNodesTimelineItemsNodesReviewRequestedEventRequestedReviewerTeam(
     BaseModel
 ):
     typename__: Literal["Team"] = Field(alias="__typename")
+    id: str
     slug: str
     team_name: str
+    created_at: datetime = Field(alias="createdAt")
+    updated_at: datetime = Field(alias="updatedAt")
 
 
 class PullRequestPageRepositoryPullRequestsNodesTimelineItemsNodesReviewRequestedEventRequestedReviewerUser(
     BaseModel
 ):
     typename__: Literal["User"] = Field(alias="__typename")
+    id: str
     login: str
     user_name: Optional[str]
+    created_at: datetime = Field(alias="createdAt")
+    updated_at: datetime = Field(alias="updatedAt")
 
 
 class PullRequestPageRepositoryPullRequestsNodesTimelineItemsNodesSubIssueAddedEvent(
@@ -1925,7 +2321,7 @@ class PullRequestPageRepositoryPullRequestsNodesTimelineItemsNodesUnassignedEven
             Field(discriminator="typename__"),
         ]
     ]
-    created_at: Any = Field(alias="createdAt")
+    created_at: datetime = Field(alias="createdAt")
     id: str
 
 
@@ -1939,70 +2335,99 @@ class PullRequestPageRepositoryPullRequestsNodesTimelineItemsNodesUnassignedEven
     BaseModel
 ):
     typename__: Literal["Bot"] = Field(alias="__typename")
+    id: str
     login: str
+    created_at: datetime = Field(alias="createdAt")
+    updated_at: datetime = Field(alias="updatedAt")
 
 
 class PullRequestPageRepositoryPullRequestsNodesTimelineItemsNodesUnassignedEventActorEnterpriseUserAccount(
     BaseModel
 ):
     typename__: Literal["EnterpriseUserAccount"] = Field(alias="__typename")
+    id: str
     login: str
     name: Optional[str]
+    created_at: datetime = Field(alias="createdAt")
+    updated_at: datetime = Field(alias="updatedAt")
 
 
 class PullRequestPageRepositoryPullRequestsNodesTimelineItemsNodesUnassignedEventActorMannequin(
     BaseModel
 ):
     typename__: Literal["Mannequin"] = Field(alias="__typename")
+    id: str
     login: str
     name: Optional[str]
+    created_at: datetime = Field(alias="createdAt")
+    updated_at: datetime = Field(alias="updatedAt")
 
 
 class PullRequestPageRepositoryPullRequestsNodesTimelineItemsNodesUnassignedEventActorOrganization(
     BaseModel
 ):
     typename__: Literal["Organization"] = Field(alias="__typename")
+    id: str
     login: str
     name: Optional[str]
+    archived_at: Optional[datetime] = Field(alias="archivedAt")
+    created_at: datetime = Field(alias="createdAt")
+    updated_at: datetime = Field(alias="updatedAt")
 
 
 class PullRequestPageRepositoryPullRequestsNodesTimelineItemsNodesUnassignedEventActorUser(
     BaseModel
 ):
     typename__: Literal["User"] = Field(alias="__typename")
+    id: str
     login: str
     name: Optional[str]
+    created_at: datetime = Field(alias="createdAt")
+    updated_at: datetime = Field(alias="updatedAt")
 
 
 class PullRequestPageRepositoryPullRequestsNodesTimelineItemsNodesUnassignedEventAssigneeBot(
     BaseModel
 ):
     typename__: Literal["Bot"] = Field(alias="__typename")
+    id: str
     login: str
+    created_at: datetime = Field(alias="createdAt")
+    updated_at: datetime = Field(alias="updatedAt")
 
 
 class PullRequestPageRepositoryPullRequestsNodesTimelineItemsNodesUnassignedEventAssigneeMannequin(
     BaseModel
 ):
     typename__: Literal["Mannequin"] = Field(alias="__typename")
+    id: str
     login: str
     name: Optional[str]
+    created_at: datetime = Field(alias="createdAt")
+    updated_at: datetime = Field(alias="updatedAt")
 
 
 class PullRequestPageRepositoryPullRequestsNodesTimelineItemsNodesUnassignedEventAssigneeOrganization(
     BaseModel
 ):
     typename__: Literal["Organization"] = Field(alias="__typename")
+    id: str
     login: str
     name: Optional[str]
+    archived_at: Optional[datetime] = Field(alias="archivedAt")
+    created_at: datetime = Field(alias="createdAt")
+    updated_at: datetime = Field(alias="updatedAt")
 
 
 class PullRequestPageRepositoryPullRequestsNodesTimelineItemsNodesUnassignedEventAssigneeUser(
     BaseModel
 ):
     typename__: Literal["User"] = Field(alias="__typename")
+    id: str
     login: str
     name: Optional[str]
+    created_at: datetime = Field(alias="createdAt")
+    updated_at: datetime = Field(alias="updatedAt")
 
 
 class PullRequestPageRepositoryPullRequestsNodesTimelineItemsNodesUnlabeledEvent(
@@ -2022,7 +2447,7 @@ class PullRequestPageRepositoryPullRequestsNodesTimelineItemsNodesUnlabeledEvent
             Field(discriminator="typename__"),
         ]
     ]
-    created_at: Any = Field(alias="createdAt")
+    created_at: datetime = Field(alias="createdAt")
     id: str
     label: "PullRequestPageRepositoryPullRequestsNodesTimelineItemsNodesUnlabeledEventLabel"
 
@@ -2037,45 +2462,64 @@ class PullRequestPageRepositoryPullRequestsNodesTimelineItemsNodesUnlabeledEvent
     BaseModel
 ):
     typename__: Literal["Bot"] = Field(alias="__typename")
+    id: str
     login: str
+    created_at: datetime = Field(alias="createdAt")
+    updated_at: datetime = Field(alias="updatedAt")
 
 
 class PullRequestPageRepositoryPullRequestsNodesTimelineItemsNodesUnlabeledEventActorEnterpriseUserAccount(
     BaseModel
 ):
     typename__: Literal["EnterpriseUserAccount"] = Field(alias="__typename")
+    id: str
     login: str
     name: Optional[str]
+    created_at: datetime = Field(alias="createdAt")
+    updated_at: datetime = Field(alias="updatedAt")
 
 
 class PullRequestPageRepositoryPullRequestsNodesTimelineItemsNodesUnlabeledEventActorMannequin(
     BaseModel
 ):
     typename__: Literal["Mannequin"] = Field(alias="__typename")
+    id: str
     login: str
     name: Optional[str]
+    created_at: datetime = Field(alias="createdAt")
+    updated_at: datetime = Field(alias="updatedAt")
 
 
 class PullRequestPageRepositoryPullRequestsNodesTimelineItemsNodesUnlabeledEventActorOrganization(
     BaseModel
 ):
     typename__: Literal["Organization"] = Field(alias="__typename")
+    id: str
     login: str
     name: Optional[str]
+    archived_at: Optional[datetime] = Field(alias="archivedAt")
+    created_at: datetime = Field(alias="createdAt")
+    updated_at: datetime = Field(alias="updatedAt")
 
 
 class PullRequestPageRepositoryPullRequestsNodesTimelineItemsNodesUnlabeledEventActorUser(
     BaseModel
 ):
     typename__: Literal["User"] = Field(alias="__typename")
+    id: str
     login: str
     name: Optional[str]
+    created_at: datetime = Field(alias="createdAt")
+    updated_at: datetime = Field(alias="updatedAt")
 
 
 class PullRequestPageRepositoryPullRequestsNodesTimelineItemsNodesUnlabeledEventLabel(
     BaseModel
 ):
+    id: str
     name: str
+    created_at: Optional[datetime] = Field(alias="createdAt")
+    updated_at: Optional[datetime] = Field(alias="updatedAt")
 
 
 class PullRequestPageRepositoryPullRequestsNodesTimelineItemsNodesUnlockedEvent(

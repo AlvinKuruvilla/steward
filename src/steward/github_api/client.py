@@ -82,41 +82,70 @@ class GitHubClient(AsyncBaseClient):
                 actor {
                   __typename
                   ... on Bot {
+                    id
                     login
+                    createdAt
+                    updatedAt
                   }
                   ... on EnterpriseUserAccount {
+                    id
                     login
                     name
+                    createdAt
+                    updatedAt
                   }
                   ... on Mannequin {
+                    id
                     login
                     name
+                    createdAt
+                    updatedAt
                   }
                   ... on Organization {
+                    id
                     login
                     name
+                    archivedAt
+                    createdAt
+                    updatedAt
                   }
                   ... on User {
+                    id
                     login
                     name
+                    createdAt
+                    updatedAt
                   }
                 }
                 assignee {
                   __typename
                   ... on Bot {
+                    id
                     login
+                    createdAt
+                    updatedAt
                   }
                   ... on Mannequin {
+                    id
                     login
                     name
+                    createdAt
+                    updatedAt
                   }
                   ... on Organization {
+                    id
                     login
                     name
+                    archivedAt
+                    createdAt
+                    updatedAt
                   }
                   ... on User {
+                    id
                     login
                     name
+                    createdAt
+                    updatedAt
                   }
                 }
                 createdAt
@@ -126,46 +155,89 @@ class GitHubClient(AsyncBaseClient):
                 actor {
                   __typename
                   ... on Bot {
+                    id
                     login
+                    createdAt
+                    updatedAt
                   }
                   ... on EnterpriseUserAccount {
+                    id
                     login
                     name
+                    createdAt
+                    updatedAt
                   }
                   ... on Mannequin {
+                    id
                     login
                     name
+                    createdAt
+                    updatedAt
                   }
                   ... on Organization {
+                    id
                     login
                     name
+                    archivedAt
+                    createdAt
+                    updatedAt
                   }
                   ... on User {
+                    id
                     login
                     name
+                    createdAt
+                    updatedAt
                   }
                 }
                 closer {
                   __typename
                   ... on Commit {
+                    id
                     oid
                     abbreviatedOid
+                    authoredDate
+                    committedDate
                   }
                   ... on ProjectV2 {
+                    id
                     number
+                    closedAt
+                    createdAt
+                    updatedAt
                   }
                   ... on PullRequest {
+                    id
                     number
+                    closedAt
+                    createdAt
+                    lastEditedAt
+                    mergedAt
+                    publishedAt
+                    updatedAt
                   }
                 }
                 createdAt
                 duplicateOf {
                   __typename
                   ... on Issue {
+                    id
                     number
+                    closedAt
+                    createdAt
+                    lastEditedAt
+                    publishedAt
+                    updatedAt
                   }
                   ... on PullRequest {
+                    id
                     number
+                    closedAt
+                    createdAt
+                    lastEditedAt
+                    mergedAt
+                    publishedAt
+                    updatedAt
                   }
                 }
                 id
@@ -175,23 +247,39 @@ class GitHubClient(AsyncBaseClient):
                 actor {
                   __typename
                   ... on Bot {
+                    id
                     login
+                    createdAt
+                    updatedAt
                   }
                   ... on EnterpriseUserAccount {
+                    id
                     login
                     name
+                    createdAt
+                    updatedAt
                   }
                   ... on Mannequin {
+                    id
                     login
                     name
+                    createdAt
+                    updatedAt
                   }
                   ... on Organization {
+                    id
                     login
                     name
+                    archivedAt
+                    createdAt
+                    updatedAt
                   }
                   ... on User {
+                    id
                     login
                     name
+                    createdAt
+                    updatedAt
                   }
                 }
                 createdAt
@@ -201,23 +289,39 @@ class GitHubClient(AsyncBaseClient):
                 actor {
                   __typename
                   ... on Bot {
+                    id
                     login
+                    createdAt
+                    updatedAt
                   }
                   ... on EnterpriseUserAccount {
+                    id
                     login
                     name
+                    createdAt
+                    updatedAt
                   }
                   ... on Mannequin {
+                    id
                     login
                     name
+                    createdAt
+                    updatedAt
                   }
                   ... on Organization {
+                    id
                     login
                     name
+                    archivedAt
+                    createdAt
+                    updatedAt
                   }
                   ... on User {
+                    id
                     login
                     name
+                    createdAt
+                    updatedAt
                   }
                 }
                 createdAt
@@ -227,19 +331,45 @@ class GitHubClient(AsyncBaseClient):
                 source {
                   __typename
                   ... on Issue {
+                    id
                     number
+                    closedAt
+                    createdAt
+                    lastEditedAt
+                    publishedAt
+                    updatedAt
                   }
                   ... on PullRequest {
+                    id
                     number
+                    closedAt
+                    createdAt
+                    lastEditedAt
+                    mergedAt
+                    publishedAt
+                    updatedAt
                   }
                 }
                 target {
                   __typename
                   ... on Issue {
+                    id
                     number
+                    closedAt
+                    createdAt
+                    lastEditedAt
+                    publishedAt
+                    updatedAt
                   }
                   ... on PullRequest {
+                    id
                     number
+                    closedAt
+                    createdAt
+                    lastEditedAt
+                    mergedAt
+                    publishedAt
+                    updatedAt
                   }
                 }
                 willCloseTarget
@@ -248,36 +378,59 @@ class GitHubClient(AsyncBaseClient):
                 actor {
                   __typename
                   ... on Bot {
+                    id
                     login
+                    createdAt
+                    updatedAt
                   }
                   ... on EnterpriseUserAccount {
+                    id
                     login
                     name
+                    createdAt
+                    updatedAt
                   }
                   ... on Mannequin {
+                    id
                     login
                     name
+                    createdAt
+                    updatedAt
                   }
                   ... on Organization {
+                    id
                     login
                     name
+                    archivedAt
+                    createdAt
+                    updatedAt
                   }
                   ... on User {
+                    id
                     login
                     name
+                    createdAt
+                    updatedAt
                   }
                 }
                 afterCommit {
+                  id
                   oid
                   abbreviatedOid
+                  authoredDate
+                  committedDate
                 }
                 beforeCommit {
+                  id
                   oid
                   abbreviatedOid
+                  authoredDate
+                  committedDate
                 }
                 createdAt
                 id
                 ref {
+                  id
                   name
                 }
               }
@@ -285,23 +438,39 @@ class GitHubClient(AsyncBaseClient):
                 author {
                   __typename
                   ... on Bot {
+                    id
                     login
+                    createdAt
+                    updatedAt
                   }
                   ... on EnterpriseUserAccount {
+                    id
                     login
                     name
+                    createdAt
+                    updatedAt
                   }
                   ... on Mannequin {
+                    id
                     login
                     name
+                    createdAt
+                    updatedAt
                   }
                   ... on Organization {
+                    id
                     login
                     name
+                    archivedAt
+                    createdAt
+                    updatedAt
                   }
                   ... on User {
+                    id
                     login
                     name
+                    createdAt
+                    updatedAt
                   }
                 }
                 authorAssociation
@@ -310,23 +479,39 @@ class GitHubClient(AsyncBaseClient):
                 editor {
                   __typename
                   ... on Bot {
+                    id
                     login
+                    createdAt
+                    updatedAt
                   }
                   ... on EnterpriseUserAccount {
+                    id
                     login
                     name
+                    createdAt
+                    updatedAt
                   }
                   ... on Mannequin {
+                    id
                     login
                     name
+                    createdAt
+                    updatedAt
                   }
                   ... on Organization {
+                    id
                     login
                     name
+                    archivedAt
+                    createdAt
+                    updatedAt
                   }
                   ... on User {
+                    id
                     login
                     name
+                    createdAt
+                    updatedAt
                   }
                 }
                 fullDatabaseId
@@ -338,88 +523,127 @@ class GitHubClient(AsyncBaseClient):
                 minimizedReason
                 pinnedAt
                 pinnedBy {
+                  id
                   login
                   name
+                  createdAt
+                  updatedAt
                 }
                 publishedAt
+                reactionGroups {
+                  createdAt
+                }
                 updatedAt
-                viewerCanDelete
-                viewerCanMinimize
-                viewerCanPin
-                viewerCanReact
-                viewerCanUnminimize
-                viewerCanUnpin
-                viewerCanUpdate
-                viewerCannotUpdateReasons
-                viewerDidAuthor
               }
               ... on LabeledEvent {
                 actor {
                   __typename
                   ... on Bot {
+                    id
                     login
+                    createdAt
+                    updatedAt
                   }
                   ... on EnterpriseUserAccount {
+                    id
                     login
                     name
+                    createdAt
+                    updatedAt
                   }
                   ... on Mannequin {
+                    id
                     login
                     name
+                    createdAt
+                    updatedAt
                   }
                   ... on Organization {
+                    id
                     login
                     name
+                    archivedAt
+                    createdAt
+                    updatedAt
                   }
                   ... on User {
+                    id
                     login
                     name
+                    createdAt
+                    updatedAt
                   }
                 }
                 createdAt
                 id
                 label {
+                  id
                   name
+                  createdAt
+                  updatedAt
                 }
               }
               ... on MergedEvent {
                 actor {
                   __typename
                   ... on Bot {
+                    id
                     login
+                    createdAt
+                    updatedAt
                   }
                   ... on EnterpriseUserAccount {
+                    id
                     login
                     name
+                    createdAt
+                    updatedAt
                   }
                   ... on Mannequin {
+                    id
                     login
                     name
+                    createdAt
+                    updatedAt
                   }
                   ... on Organization {
+                    id
                     login
                     name
+                    archivedAt
+                    createdAt
+                    updatedAt
                   }
                   ... on User {
+                    id
                     login
                     name
+                    createdAt
+                    updatedAt
                   }
                 }
                 mergedEvent_commit: commit {
+                  id
                   oid
                   abbreviatedOid
+                  authoredDate
+                  committedDate
                 }
                 createdAt
                 id
                 mergeRef {
+                  id
                   name
                 }
                 mergeRefName
               }
               ... on PullRequestCommit {
                 pullRequestCommit_commit: commit {
+                  id
                   oid
                   abbreviatedOid
+                  authoredDate
+                  committedDate
                 }
                 id
               }
@@ -427,53 +651,88 @@ class GitHubClient(AsyncBaseClient):
                 author {
                   __typename
                   ... on Bot {
+                    id
                     login
+                    createdAt
+                    updatedAt
                   }
                   ... on EnterpriseUserAccount {
+                    id
                     login
                     name
+                    createdAt
+                    updatedAt
                   }
                   ... on Mannequin {
+                    id
                     login
                     name
+                    createdAt
+                    updatedAt
                   }
                   ... on Organization {
+                    id
                     login
                     name
+                    archivedAt
+                    createdAt
+                    updatedAt
                   }
                   ... on User {
+                    id
                     login
                     name
+                    createdAt
+                    updatedAt
                   }
                 }
                 authorAssociation
                 authorCanPushToRepository
                 pullRequestReview_commit: commit {
+                  id
                   oid
                   abbreviatedOid
+                  authoredDate
+                  committedDate
                 }
                 createdAt
                 createdViaEmail
                 editor {
                   __typename
                   ... on Bot {
+                    id
                     login
+                    createdAt
+                    updatedAt
                   }
                   ... on EnterpriseUserAccount {
+                    id
                     login
                     name
+                    createdAt
+                    updatedAt
                   }
                   ... on Mannequin {
+                    id
                     login
                     name
+                    createdAt
+                    updatedAt
                   }
                   ... on Organization {
+                    id
                     login
                     name
+                    archivedAt
+                    createdAt
+                    updatedAt
                   }
                   ... on User {
+                    id
                     login
                     name
+                    createdAt
+                    updatedAt
                   }
                 }
                 fullDatabaseId
@@ -483,38 +742,50 @@ class GitHubClient(AsyncBaseClient):
                 lastEditedAt
                 minimizedReason
                 publishedAt
+                reactionGroups {
+                  createdAt
+                }
                 state
                 submittedAt
                 updatedAt
-                viewerCanDelete
-                viewerCanMinimize
-                viewerCanReact
-                viewerCanUnminimize
-                viewerCanUpdate
-                viewerCannotUpdateReasons
-                viewerDidAuthor
               }
               ... on ReadyForReviewEvent {
                 actor {
                   __typename
                   ... on Bot {
+                    id
                     login
+                    createdAt
+                    updatedAt
                   }
                   ... on EnterpriseUserAccount {
+                    id
                     login
                     name
+                    createdAt
+                    updatedAt
                   }
                   ... on Mannequin {
+                    id
                     login
                     name
+                    createdAt
+                    updatedAt
                   }
                   ... on Organization {
+                    id
                     login
                     name
+                    archivedAt
+                    createdAt
+                    updatedAt
                   }
                   ... on User {
+                    id
                     login
                     name
+                    createdAt
+                    updatedAt
                   }
                 }
                 createdAt
@@ -524,23 +795,39 @@ class GitHubClient(AsyncBaseClient):
                 actor {
                   __typename
                   ... on Bot {
+                    id
                     login
+                    createdAt
+                    updatedAt
                   }
                   ... on EnterpriseUserAccount {
+                    id
                     login
                     name
+                    createdAt
+                    updatedAt
                   }
                   ... on Mannequin {
+                    id
                     login
                     name
+                    createdAt
+                    updatedAt
                   }
                   ... on Organization {
+                    id
                     login
                     name
+                    archivedAt
+                    createdAt
+                    updatedAt
                   }
                   ... on User {
+                    id
                     login
                     name
+                    createdAt
+                    updatedAt
                   }
                 }
                 createdAt
@@ -551,51 +838,94 @@ class GitHubClient(AsyncBaseClient):
                 actor {
                   __typename
                   ... on Bot {
+                    id
                     login
+                    createdAt
+                    updatedAt
                   }
                   ... on EnterpriseUserAccount {
+                    id
                     login
                     name
+                    createdAt
+                    updatedAt
                   }
                   ... on Mannequin {
+                    id
                     login
                     name
+                    createdAt
+                    updatedAt
                   }
                   ... on Organization {
+                    id
                     login
                     name
+                    archivedAt
+                    createdAt
+                    updatedAt
                   }
                   ... on User {
+                    id
                     login
                     name
+                    createdAt
+                    updatedAt
                   }
                 }
                 createdAt
                 dismissalMessage
                 id
                 previousReviewState
+                pullRequestCommit {
+                  id
+                }
+                review {
+                  id
+                  createdAt
+                  lastEditedAt
+                  publishedAt
+                  submittedAt
+                  updatedAt
+                }
               }
               ... on ReviewRequestRemovedEvent {
                 actor {
                   __typename
                   ... on Bot {
+                    id
                     login
+                    createdAt
+                    updatedAt
                   }
                   ... on EnterpriseUserAccount {
+                    id
                     login
                     name
+                    createdAt
+                    updatedAt
                   }
                   ... on Mannequin {
+                    id
                     login
                     name
+                    createdAt
+                    updatedAt
                   }
                   ... on Organization {
+                    id
                     login
                     name
+                    archivedAt
+                    createdAt
+                    updatedAt
                   }
                   ... on User {
+                    id
                     login
                     name
+                    createdAt
+                    updatedAt
                   }
                 }
                 createdAt
@@ -603,23 +933,38 @@ class GitHubClient(AsyncBaseClient):
                 requestedReviewer {
                   __typename
                   ... on Bot {
+                    id
                     login
+                    createdAt
+                    updatedAt
                   }
                   ... on EnterpriseTeam {
+                    id
                     slug
                     enterpriseTeam_name: name
+                    createdAt
+                    updatedAt
                   }
                   ... on Mannequin {
+                    id
                     login
                     mannequin_name: name
+                    createdAt
+                    updatedAt
                   }
                   ... on Team {
+                    id
                     slug
                     team_name: name
+                    createdAt
+                    updatedAt
                   }
                   ... on User {
+                    id
                     login
                     user_name: name
+                    createdAt
+                    updatedAt
                   }
                 }
               }
@@ -627,23 +972,39 @@ class GitHubClient(AsyncBaseClient):
                 actor {
                   __typename
                   ... on Bot {
+                    id
                     login
+                    createdAt
+                    updatedAt
                   }
                   ... on EnterpriseUserAccount {
+                    id
                     login
                     name
+                    createdAt
+                    updatedAt
                   }
                   ... on Mannequin {
+                    id
                     login
                     name
+                    createdAt
+                    updatedAt
                   }
                   ... on Organization {
+                    id
                     login
                     name
+                    archivedAt
+                    createdAt
+                    updatedAt
                   }
                   ... on User {
+                    id
                     login
                     name
+                    createdAt
+                    updatedAt
                   }
                 }
                 createdAt
@@ -651,23 +1012,38 @@ class GitHubClient(AsyncBaseClient):
                 requestedReviewer {
                   __typename
                   ... on Bot {
+                    id
                     login
+                    createdAt
+                    updatedAt
                   }
                   ... on EnterpriseTeam {
+                    id
                     slug
                     enterpriseTeam_name: name
+                    createdAt
+                    updatedAt
                   }
                   ... on Mannequin {
+                    id
                     login
                     mannequin_name: name
+                    createdAt
+                    updatedAt
                   }
                   ... on Team {
+                    id
                     slug
                     team_name: name
+                    createdAt
+                    updatedAt
                   }
                   ... on User {
+                    id
                     login
                     user_name: name
+                    createdAt
+                    updatedAt
                   }
                 }
               }
@@ -675,41 +1051,70 @@ class GitHubClient(AsyncBaseClient):
                 actor {
                   __typename
                   ... on Bot {
+                    id
                     login
+                    createdAt
+                    updatedAt
                   }
                   ... on EnterpriseUserAccount {
+                    id
                     login
                     name
+                    createdAt
+                    updatedAt
                   }
                   ... on Mannequin {
+                    id
                     login
                     name
+                    createdAt
+                    updatedAt
                   }
                   ... on Organization {
+                    id
                     login
                     name
+                    archivedAt
+                    createdAt
+                    updatedAt
                   }
                   ... on User {
+                    id
                     login
                     name
+                    createdAt
+                    updatedAt
                   }
                 }
                 assignee {
                   __typename
                   ... on Bot {
+                    id
                     login
+                    createdAt
+                    updatedAt
                   }
                   ... on Mannequin {
+                    id
                     login
                     name
+                    createdAt
+                    updatedAt
                   }
                   ... on Organization {
+                    id
                     login
                     name
+                    archivedAt
+                    createdAt
+                    updatedAt
                   }
                   ... on User {
+                    id
                     login
                     name
+                    createdAt
+                    updatedAt
                   }
                 }
                 createdAt
@@ -719,29 +1124,48 @@ class GitHubClient(AsyncBaseClient):
                 actor {
                   __typename
                   ... on Bot {
+                    id
                     login
+                    createdAt
+                    updatedAt
                   }
                   ... on EnterpriseUserAccount {
+                    id
                     login
                     name
+                    createdAt
+                    updatedAt
                   }
                   ... on Mannequin {
+                    id
                     login
                     name
+                    createdAt
+                    updatedAt
                   }
                   ... on Organization {
+                    id
                     login
                     name
+                    archivedAt
+                    createdAt
+                    updatedAt
                   }
                   ... on User {
+                    id
                     login
                     name
+                    createdAt
+                    updatedAt
                   }
                 }
                 createdAt
                 id
                 label {
+                  id
                   name
+                  createdAt
+                  updatedAt
                 }
               }
             }
@@ -789,41 +1213,70 @@ class GitHubClient(AsyncBaseClient):
                 actor {
                   __typename
                   ... on Bot {
+                    id
                     login
+                    createdAt
+                    updatedAt
                   }
                   ... on EnterpriseUserAccount {
+                    id
                     login
                     name
+                    createdAt
+                    updatedAt
                   }
                   ... on Mannequin {
+                    id
                     login
                     name
+                    createdAt
+                    updatedAt
                   }
                   ... on Organization {
+                    id
                     login
                     name
+                    archivedAt
+                    createdAt
+                    updatedAt
                   }
                   ... on User {
+                    id
                     login
                     name
+                    createdAt
+                    updatedAt
                   }
                 }
                 assignee {
                   __typename
                   ... on Bot {
+                    id
                     login
+                    createdAt
+                    updatedAt
                   }
                   ... on Mannequin {
+                    id
                     login
                     name
+                    createdAt
+                    updatedAt
                   }
                   ... on Organization {
+                    id
                     login
                     name
+                    archivedAt
+                    createdAt
+                    updatedAt
                   }
                   ... on User {
+                    id
                     login
                     name
+                    createdAt
+                    updatedAt
                   }
                 }
                 createdAt
@@ -833,46 +1286,89 @@ class GitHubClient(AsyncBaseClient):
                 actor {
                   __typename
                   ... on Bot {
+                    id
                     login
+                    createdAt
+                    updatedAt
                   }
                   ... on EnterpriseUserAccount {
+                    id
                     login
                     name
+                    createdAt
+                    updatedAt
                   }
                   ... on Mannequin {
+                    id
                     login
                     name
+                    createdAt
+                    updatedAt
                   }
                   ... on Organization {
+                    id
                     login
                     name
+                    archivedAt
+                    createdAt
+                    updatedAt
                   }
                   ... on User {
+                    id
                     login
                     name
+                    createdAt
+                    updatedAt
                   }
                 }
                 closer {
                   __typename
                   ... on Commit {
+                    id
                     oid
                     abbreviatedOid
+                    authoredDate
+                    committedDate
                   }
                   ... on ProjectV2 {
+                    id
                     number
+                    closedAt
+                    createdAt
+                    updatedAt
                   }
                   ... on PullRequest {
+                    id
                     number
+                    closedAt
+                    createdAt
+                    lastEditedAt
+                    mergedAt
+                    publishedAt
+                    updatedAt
                   }
                 }
                 createdAt
                 duplicateOf {
                   __typename
                   ... on Issue {
+                    id
                     number
+                    closedAt
+                    createdAt
+                    lastEditedAt
+                    publishedAt
+                    updatedAt
                   }
                   ... on PullRequest {
+                    id
                     number
+                    closedAt
+                    createdAt
+                    lastEditedAt
+                    mergedAt
+                    publishedAt
+                    updatedAt
                   }
                 }
                 id
@@ -882,23 +1378,39 @@ class GitHubClient(AsyncBaseClient):
                 actor {
                   __typename
                   ... on Bot {
+                    id
                     login
+                    createdAt
+                    updatedAt
                   }
                   ... on EnterpriseUserAccount {
+                    id
                     login
                     name
+                    createdAt
+                    updatedAt
                   }
                   ... on Mannequin {
+                    id
                     login
                     name
+                    createdAt
+                    updatedAt
                   }
                   ... on Organization {
+                    id
                     login
                     name
+                    archivedAt
+                    createdAt
+                    updatedAt
                   }
                   ... on User {
+                    id
                     login
                     name
+                    createdAt
+                    updatedAt
                   }
                 }
                 createdAt
@@ -908,23 +1420,39 @@ class GitHubClient(AsyncBaseClient):
                 actor {
                   __typename
                   ... on Bot {
+                    id
                     login
+                    createdAt
+                    updatedAt
                   }
                   ... on EnterpriseUserAccount {
+                    id
                     login
                     name
+                    createdAt
+                    updatedAt
                   }
                   ... on Mannequin {
+                    id
                     login
                     name
+                    createdAt
+                    updatedAt
                   }
                   ... on Organization {
+                    id
                     login
                     name
+                    archivedAt
+                    createdAt
+                    updatedAt
                   }
                   ... on User {
+                    id
                     login
                     name
+                    createdAt
+                    updatedAt
                   }
                 }
                 createdAt
@@ -934,19 +1462,45 @@ class GitHubClient(AsyncBaseClient):
                 source {
                   __typename
                   ... on Issue {
+                    id
                     number
+                    closedAt
+                    createdAt
+                    lastEditedAt
+                    publishedAt
+                    updatedAt
                   }
                   ... on PullRequest {
+                    id
                     number
+                    closedAt
+                    createdAt
+                    lastEditedAt
+                    mergedAt
+                    publishedAt
+                    updatedAt
                   }
                 }
                 target {
                   __typename
                   ... on Issue {
+                    id
                     number
+                    closedAt
+                    createdAt
+                    lastEditedAt
+                    publishedAt
+                    updatedAt
                   }
                   ... on PullRequest {
+                    id
                     number
+                    closedAt
+                    createdAt
+                    lastEditedAt
+                    mergedAt
+                    publishedAt
+                    updatedAt
                   }
                 }
                 willCloseTarget
@@ -955,36 +1509,59 @@ class GitHubClient(AsyncBaseClient):
                 actor {
                   __typename
                   ... on Bot {
+                    id
                     login
+                    createdAt
+                    updatedAt
                   }
                   ... on EnterpriseUserAccount {
+                    id
                     login
                     name
+                    createdAt
+                    updatedAt
                   }
                   ... on Mannequin {
+                    id
                     login
                     name
+                    createdAt
+                    updatedAt
                   }
                   ... on Organization {
+                    id
                     login
                     name
+                    archivedAt
+                    createdAt
+                    updatedAt
                   }
                   ... on User {
+                    id
                     login
                     name
+                    createdAt
+                    updatedAt
                   }
                 }
                 afterCommit {
+                  id
                   oid
                   abbreviatedOid
+                  authoredDate
+                  committedDate
                 }
                 beforeCommit {
+                  id
                   oid
                   abbreviatedOid
+                  authoredDate
+                  committedDate
                 }
                 createdAt
                 id
                 ref {
+                  id
                   name
                 }
               }
@@ -992,23 +1569,39 @@ class GitHubClient(AsyncBaseClient):
                 author {
                   __typename
                   ... on Bot {
+                    id
                     login
+                    createdAt
+                    updatedAt
                   }
                   ... on EnterpriseUserAccount {
+                    id
                     login
                     name
+                    createdAt
+                    updatedAt
                   }
                   ... on Mannequin {
+                    id
                     login
                     name
+                    createdAt
+                    updatedAt
                   }
                   ... on Organization {
+                    id
                     login
                     name
+                    archivedAt
+                    createdAt
+                    updatedAt
                   }
                   ... on User {
+                    id
                     login
                     name
+                    createdAt
+                    updatedAt
                   }
                 }
                 authorAssociation
@@ -1017,23 +1610,39 @@ class GitHubClient(AsyncBaseClient):
                 editor {
                   __typename
                   ... on Bot {
+                    id
                     login
+                    createdAt
+                    updatedAt
                   }
                   ... on EnterpriseUserAccount {
+                    id
                     login
                     name
+                    createdAt
+                    updatedAt
                   }
                   ... on Mannequin {
+                    id
                     login
                     name
+                    createdAt
+                    updatedAt
                   }
                   ... on Organization {
+                    id
                     login
                     name
+                    archivedAt
+                    createdAt
+                    updatedAt
                   }
                   ... on User {
+                    id
                     login
                     name
+                    createdAt
+                    updatedAt
                   }
                 }
                 fullDatabaseId
@@ -1045,88 +1654,127 @@ class GitHubClient(AsyncBaseClient):
                 minimizedReason
                 pinnedAt
                 pinnedBy {
+                  id
                   login
                   name
+                  createdAt
+                  updatedAt
                 }
                 publishedAt
+                reactionGroups {
+                  createdAt
+                }
                 updatedAt
-                viewerCanDelete
-                viewerCanMinimize
-                viewerCanPin
-                viewerCanReact
-                viewerCanUnminimize
-                viewerCanUnpin
-                viewerCanUpdate
-                viewerCannotUpdateReasons
-                viewerDidAuthor
               }
               ... on LabeledEvent {
                 actor {
                   __typename
                   ... on Bot {
+                    id
                     login
+                    createdAt
+                    updatedAt
                   }
                   ... on EnterpriseUserAccount {
+                    id
                     login
                     name
+                    createdAt
+                    updatedAt
                   }
                   ... on Mannequin {
+                    id
                     login
                     name
+                    createdAt
+                    updatedAt
                   }
                   ... on Organization {
+                    id
                     login
                     name
+                    archivedAt
+                    createdAt
+                    updatedAt
                   }
                   ... on User {
+                    id
                     login
                     name
+                    createdAt
+                    updatedAt
                   }
                 }
                 createdAt
                 id
                 label {
+                  id
                   name
+                  createdAt
+                  updatedAt
                 }
               }
               ... on MergedEvent {
                 actor {
                   __typename
                   ... on Bot {
+                    id
                     login
+                    createdAt
+                    updatedAt
                   }
                   ... on EnterpriseUserAccount {
+                    id
                     login
                     name
+                    createdAt
+                    updatedAt
                   }
                   ... on Mannequin {
+                    id
                     login
                     name
+                    createdAt
+                    updatedAt
                   }
                   ... on Organization {
+                    id
                     login
                     name
+                    archivedAt
+                    createdAt
+                    updatedAt
                   }
                   ... on User {
+                    id
                     login
                     name
+                    createdAt
+                    updatedAt
                   }
                 }
                 mergedEvent_commit: commit {
+                  id
                   oid
                   abbreviatedOid
+                  authoredDate
+                  committedDate
                 }
                 createdAt
                 id
                 mergeRef {
+                  id
                   name
                 }
                 mergeRefName
               }
               ... on PullRequestCommit {
                 pullRequestCommit_commit: commit {
+                  id
                   oid
                   abbreviatedOid
+                  authoredDate
+                  committedDate
                 }
                 id
               }
@@ -1134,53 +1782,88 @@ class GitHubClient(AsyncBaseClient):
                 author {
                   __typename
                   ... on Bot {
+                    id
                     login
+                    createdAt
+                    updatedAt
                   }
                   ... on EnterpriseUserAccount {
+                    id
                     login
                     name
+                    createdAt
+                    updatedAt
                   }
                   ... on Mannequin {
+                    id
                     login
                     name
+                    createdAt
+                    updatedAt
                   }
                   ... on Organization {
+                    id
                     login
                     name
+                    archivedAt
+                    createdAt
+                    updatedAt
                   }
                   ... on User {
+                    id
                     login
                     name
+                    createdAt
+                    updatedAt
                   }
                 }
                 authorAssociation
                 authorCanPushToRepository
                 pullRequestReview_commit: commit {
+                  id
                   oid
                   abbreviatedOid
+                  authoredDate
+                  committedDate
                 }
                 createdAt
                 createdViaEmail
                 editor {
                   __typename
                   ... on Bot {
+                    id
                     login
+                    createdAt
+                    updatedAt
                   }
                   ... on EnterpriseUserAccount {
+                    id
                     login
                     name
+                    createdAt
+                    updatedAt
                   }
                   ... on Mannequin {
+                    id
                     login
                     name
+                    createdAt
+                    updatedAt
                   }
                   ... on Organization {
+                    id
                     login
                     name
+                    archivedAt
+                    createdAt
+                    updatedAt
                   }
                   ... on User {
+                    id
                     login
                     name
+                    createdAt
+                    updatedAt
                   }
                 }
                 fullDatabaseId
@@ -1190,38 +1873,50 @@ class GitHubClient(AsyncBaseClient):
                 lastEditedAt
                 minimizedReason
                 publishedAt
+                reactionGroups {
+                  createdAt
+                }
                 state
                 submittedAt
                 updatedAt
-                viewerCanDelete
-                viewerCanMinimize
-                viewerCanReact
-                viewerCanUnminimize
-                viewerCanUpdate
-                viewerCannotUpdateReasons
-                viewerDidAuthor
               }
               ... on ReadyForReviewEvent {
                 actor {
                   __typename
                   ... on Bot {
+                    id
                     login
+                    createdAt
+                    updatedAt
                   }
                   ... on EnterpriseUserAccount {
+                    id
                     login
                     name
+                    createdAt
+                    updatedAt
                   }
                   ... on Mannequin {
+                    id
                     login
                     name
+                    createdAt
+                    updatedAt
                   }
                   ... on Organization {
+                    id
                     login
                     name
+                    archivedAt
+                    createdAt
+                    updatedAt
                   }
                   ... on User {
+                    id
                     login
                     name
+                    createdAt
+                    updatedAt
                   }
                 }
                 createdAt
@@ -1231,23 +1926,39 @@ class GitHubClient(AsyncBaseClient):
                 actor {
                   __typename
                   ... on Bot {
+                    id
                     login
+                    createdAt
+                    updatedAt
                   }
                   ... on EnterpriseUserAccount {
+                    id
                     login
                     name
+                    createdAt
+                    updatedAt
                   }
                   ... on Mannequin {
+                    id
                     login
                     name
+                    createdAt
+                    updatedAt
                   }
                   ... on Organization {
+                    id
                     login
                     name
+                    archivedAt
+                    createdAt
+                    updatedAt
                   }
                   ... on User {
+                    id
                     login
                     name
+                    createdAt
+                    updatedAt
                   }
                 }
                 createdAt
@@ -1258,51 +1969,94 @@ class GitHubClient(AsyncBaseClient):
                 actor {
                   __typename
                   ... on Bot {
+                    id
                     login
+                    createdAt
+                    updatedAt
                   }
                   ... on EnterpriseUserAccount {
+                    id
                     login
                     name
+                    createdAt
+                    updatedAt
                   }
                   ... on Mannequin {
+                    id
                     login
                     name
+                    createdAt
+                    updatedAt
                   }
                   ... on Organization {
+                    id
                     login
                     name
+                    archivedAt
+                    createdAt
+                    updatedAt
                   }
                   ... on User {
+                    id
                     login
                     name
+                    createdAt
+                    updatedAt
                   }
                 }
                 createdAt
                 dismissalMessage
                 id
                 previousReviewState
+                pullRequestCommit {
+                  id
+                }
+                review {
+                  id
+                  createdAt
+                  lastEditedAt
+                  publishedAt
+                  submittedAt
+                  updatedAt
+                }
               }
               ... on ReviewRequestRemovedEvent {
                 actor {
                   __typename
                   ... on Bot {
+                    id
                     login
+                    createdAt
+                    updatedAt
                   }
                   ... on EnterpriseUserAccount {
+                    id
                     login
                     name
+                    createdAt
+                    updatedAt
                   }
                   ... on Mannequin {
+                    id
                     login
                     name
+                    createdAt
+                    updatedAt
                   }
                   ... on Organization {
+                    id
                     login
                     name
+                    archivedAt
+                    createdAt
+                    updatedAt
                   }
                   ... on User {
+                    id
                     login
                     name
+                    createdAt
+                    updatedAt
                   }
                 }
                 createdAt
@@ -1310,23 +2064,38 @@ class GitHubClient(AsyncBaseClient):
                 requestedReviewer {
                   __typename
                   ... on Bot {
+                    id
                     login
+                    createdAt
+                    updatedAt
                   }
                   ... on EnterpriseTeam {
+                    id
                     slug
                     enterpriseTeam_name: name
+                    createdAt
+                    updatedAt
                   }
                   ... on Mannequin {
+                    id
                     login
                     mannequin_name: name
+                    createdAt
+                    updatedAt
                   }
                   ... on Team {
+                    id
                     slug
                     team_name: name
+                    createdAt
+                    updatedAt
                   }
                   ... on User {
+                    id
                     login
                     user_name: name
+                    createdAt
+                    updatedAt
                   }
                 }
               }
@@ -1334,23 +2103,39 @@ class GitHubClient(AsyncBaseClient):
                 actor {
                   __typename
                   ... on Bot {
+                    id
                     login
+                    createdAt
+                    updatedAt
                   }
                   ... on EnterpriseUserAccount {
+                    id
                     login
                     name
+                    createdAt
+                    updatedAt
                   }
                   ... on Mannequin {
+                    id
                     login
                     name
+                    createdAt
+                    updatedAt
                   }
                   ... on Organization {
+                    id
                     login
                     name
+                    archivedAt
+                    createdAt
+                    updatedAt
                   }
                   ... on User {
+                    id
                     login
                     name
+                    createdAt
+                    updatedAt
                   }
                 }
                 createdAt
@@ -1358,23 +2143,38 @@ class GitHubClient(AsyncBaseClient):
                 requestedReviewer {
                   __typename
                   ... on Bot {
+                    id
                     login
+                    createdAt
+                    updatedAt
                   }
                   ... on EnterpriseTeam {
+                    id
                     slug
                     enterpriseTeam_name: name
+                    createdAt
+                    updatedAt
                   }
                   ... on Mannequin {
+                    id
                     login
                     mannequin_name: name
+                    createdAt
+                    updatedAt
                   }
                   ... on Team {
+                    id
                     slug
                     team_name: name
+                    createdAt
+                    updatedAt
                   }
                   ... on User {
+                    id
                     login
                     user_name: name
+                    createdAt
+                    updatedAt
                   }
                 }
               }
@@ -1382,41 +2182,70 @@ class GitHubClient(AsyncBaseClient):
                 actor {
                   __typename
                   ... on Bot {
+                    id
                     login
+                    createdAt
+                    updatedAt
                   }
                   ... on EnterpriseUserAccount {
+                    id
                     login
                     name
+                    createdAt
+                    updatedAt
                   }
                   ... on Mannequin {
+                    id
                     login
                     name
+                    createdAt
+                    updatedAt
                   }
                   ... on Organization {
+                    id
                     login
                     name
+                    archivedAt
+                    createdAt
+                    updatedAt
                   }
                   ... on User {
+                    id
                     login
                     name
+                    createdAt
+                    updatedAt
                   }
                 }
                 assignee {
                   __typename
                   ... on Bot {
+                    id
                     login
+                    createdAt
+                    updatedAt
                   }
                   ... on Mannequin {
+                    id
                     login
                     name
+                    createdAt
+                    updatedAt
                   }
                   ... on Organization {
+                    id
                     login
                     name
+                    archivedAt
+                    createdAt
+                    updatedAt
                   }
                   ... on User {
+                    id
                     login
                     name
+                    createdAt
+                    updatedAt
                   }
                 }
                 createdAt
@@ -1426,29 +2255,48 @@ class GitHubClient(AsyncBaseClient):
                 actor {
                   __typename
                   ... on Bot {
+                    id
                     login
+                    createdAt
+                    updatedAt
                   }
                   ... on EnterpriseUserAccount {
+                    id
                     login
                     name
+                    createdAt
+                    updatedAt
                   }
                   ... on Mannequin {
+                    id
                     login
                     name
+                    createdAt
+                    updatedAt
                   }
                   ... on Organization {
+                    id
                     login
                     name
+                    archivedAt
+                    createdAt
+                    updatedAt
                   }
                   ... on User {
+                    id
                     login
                     name
+                    createdAt
+                    updatedAt
                   }
                 }
                 createdAt
                 id
                 label {
+                  id
                   name
+                  createdAt
+                  updatedAt
                 }
               }
             }

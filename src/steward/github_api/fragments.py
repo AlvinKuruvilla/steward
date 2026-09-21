@@ -1,4 +1,5 @@
-from typing import Any, Literal, Optional
+from datetime import datetime
+from typing import Literal, Optional
 
 from pydantic import Field
 
@@ -12,9 +13,9 @@ class PullRequestSnapshot(BaseModel):
     title: str
     state: PullRequestState
     is_draft: bool = Field(alias="isDraft")
-    created_at: Any = Field(alias="createdAt")
-    closed_at: Optional[Any] = Field(alias="closedAt")
-    merged_at: Optional[Any] = Field(alias="mergedAt")
+    created_at: datetime = Field(alias="createdAt")
+    closed_at: Optional[datetime] = Field(alias="closedAt")
+    merged_at: Optional[datetime] = Field(alias="mergedAt")
     additions: int
     deletions: int
     changed_files: int = Field(alias="changedFiles")

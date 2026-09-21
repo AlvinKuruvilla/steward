@@ -12,16 +12,6 @@ class CommentAuthorAssociation(str, Enum):
     OWNER = "OWNER"
 
 
-class CommentCannotUpdateReason(str, Enum):
-    ARCHIVED = "ARCHIVED"
-    DENIED = "DENIED"
-    INSUFFICIENT_ACCESS = "INSUFFICIENT_ACCESS"
-    LOCKED = "LOCKED"
-    LOGIN_REQUIRED = "LOGIN_REQUIRED"
-    MAINTENANCE = "MAINTENANCE"
-    VERIFIED_EMAIL_REQUIRED = "VERIFIED_EMAIL_REQUIRED"
-
-
 class IssueStateReason(str, Enum):
     COMPLETED = "COMPLETED"
     DUPLICATE = "DUPLICATE"
