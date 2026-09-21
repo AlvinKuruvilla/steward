@@ -1,0 +1,14 @@
+{
+  // Codium resolves these through Open VSX, not the Microsoft marketplace.
+  // Pylance is Microsoft-licensed and is not published there, so the Python
+  // extension falls back to Jedi for completion; basedpyright is the drop-in
+  // that gives back the type-aware language server.
+  "recommendations": [
+    "ms-python.python",
+    "charliermarsh.ruff",
+    "ms-python.mypy-type-checker",
+    "detachhead.basedpyright",
+    "esbenp.prettier-vscode"
+  ],
+  "unwantedRecommendations": ["ms-python.vscode-pylance"]
+}
