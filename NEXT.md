@@ -11,8 +11,6 @@ Working notes. Deliverables and their acceptance bars live in `ROADMAP.md`.
    and normalizes it: precogly's full history is 259 pull requests and 1,889
    events, no failures. What is left between that and `steward sync`:
 
-   - **The subjects snapshot.** `PullRequestSimple` carries title, draft state,
-     base and head refs, and nothing writes them to `subjects`.
    - **Resumability.** A sync reads every pull request every time. `since` on
      `pulls.list`, or the `last_sync` column `repositories` already has, would
      make a second run cheap; ROADMAP asks for resumable and interruptible.

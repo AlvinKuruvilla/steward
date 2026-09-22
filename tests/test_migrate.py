@@ -63,7 +63,7 @@ def test_apply_creates_the_schema(db: psycopg.Connection[Any]) -> None:
             "SELECT tablename FROM pg_tables WHERE schemaname = 'public'"
         ).fetchall()
     }
-    assert {"events", "repositories", "subjects", "schema_migrations"} <= tables
+    assert tables == {"events", "repositories", "schema_migrations"}
 
 
 def test_apply_is_idempotent(db: psycopg.Connection[Any]) -> None:
@@ -86,7 +86,7 @@ def test_tables_are_owned_by_the_owner_role(db: psycopg.Connection[Any]) -> None
 
 def test_the_engine_can_read_what_was_migrated(db: psycopg.Connection[Any]) -> None:
     apply(db)
-    for table in ("events", "repositories", "subjects"):
+    for table in ("events", "repositories"):
         assert db.execute(
             "SELECT has_table_privilege('steward_engine', %s, 'SELECT')", (table,)
         ).fetchone() == (True,)
