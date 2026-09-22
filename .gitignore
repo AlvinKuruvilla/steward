@@ -22,3 +22,7 @@ tmp
 # Working notes, deliberately not published.
 SESSION.md
 docs/audit/
+
+# Frontend
+web/node_modules/
+web/dist/

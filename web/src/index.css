@@ -1,0 +1,90 @@
+@import "tailwindcss";
+@import "@fontsource-variable/geist";
+@import "@fontsource-variable/geist-mono";
+
+/* Values from docs/design/0002-visual-language.md. Neutrals and accent are
+   OpenWork's; the state colors are Primer's, unmodified, because maintainers
+   already read green as open and purple as merged. */
+@theme {
+  --font-sans: "Geist Variable", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "Geist Mono Variable", ui-monospace, monospace;
+
+  --color-app: var(--slate-1);
+  --color-panel: var(--slate-2);
+  --color-hover: var(--slate-3);
+  --color-active: var(--slate-5);
+  --color-secondary: var(--slate-11);
+  --color-primary: var(--slate-12);
+  --color-accent: #011627;
+  --color-accent-hover: #000000;
+  --color-line: #f3f4f6;
+
+  --color-state-open: #1a7f37;
+  --color-state-merged: #8250df;
+  --color-state-closed: #d1242f;
+  --color-state-draft: #59636e;
+  --color-state-attention: #9a6700;
+
+  --radius-shell: 16px;
+  --radius-surface: 24px;
+  --radius-row: 6px;
+
+  --spacing-row: 40px;
+
+  --shadow-shell: 0 8px 24px rgb(15 23 42 / 0.05);
+
+  --ease-panel: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* Radix slate, 12 steps, for light/dark parity without hand-mixing. */
+:root {
+  --slate-1: #fcfcfd;
+  --slate-2: #f9f9fb;
+  --slate-3: #f0f0f3;
+  --slate-5: #e8e8ec;
+  --slate-11: #60646c;
+  --slate-12: #1c2024;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --slate-1: #111113;
+    --slate-2: #18191b;
+    --slate-3: #212225;
+    --slate-5: #2a2b2e;
+    --slate-11: #b0b4ba;
+    --slate-12: #eeeef0;
+
+    --color-accent-hover: #0a2540;
+    --color-line: #262626;
+
+    --color-state-open: #3fb950;
+    --color-state-merged: #ab7df8;
+    --color-state-closed: #f85149;
+    --color-state-draft: #9198a1;
+    --color-state-attention: #d29922;
+  }
+}
+
+body {
+  background: var(--color-app);
+  color: var(--color-primary);
+  font-family: var(--font-sans);
+}
+
+/* Everything the engine derived is monospace; prose and chrome are not. The
+   visual form of docs/design/0001-llm-boundary.md. */
+.derived {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
