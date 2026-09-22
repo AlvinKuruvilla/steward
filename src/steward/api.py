@@ -84,6 +84,9 @@ class Standing(BaseModel):
     author_is_bot: bool
     labels: list[str]
     comments: int
+    last_kind: str | None
+    last_actor: str | None
+    last_at: datetime | None
 
 
 class Moment(BaseModel):
@@ -144,6 +147,9 @@ def _standing(number: int, events: list[Event]) -> Standing | None:
         author_is_bot=about.author_is_bot,
         labels=list(about.labels),
         comments=about.comments,
+        last_kind=about.last_kind.value if about.last_kind else None,
+        last_actor=about.last_actor,
+        last_at=about.last_at,
     )
 
 
@@ -212,7 +218,9 @@ def get_pulls(owner: str, name: str, open_only: bool = True) -> list[Standing]:
         ):
             continue
         standings.append(standing)
-    return sorted(standings, key=lambda s: s.since, reverse=True)
+    # Stalest first. A queue is read from the top, and the thing that has been
+    # waiting longest is the thing most likely to have been forgotten.
+    return sorted(standings, key=lambda s: s.since)
 
 
 @app.get("/api/repositories/{owner}/{name}/pulls/{number}")

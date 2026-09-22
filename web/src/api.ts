@@ -30,6 +30,9 @@ export interface Standing {
   author_is_bot: boolean;
   labels: string[];
   comments: number;
+  last_kind: string | null;
+  last_actor: string | null;
+  last_at: string | null;
 }
 
 export interface Repository {
@@ -88,8 +91,26 @@ export async function post<T>(path: string, body: unknown): Promise<T> {
   return (await response.json()) as T;
 }
 
-/** Whole days since `when`, which is the only precision a queue needs. */
-export function daysSince(when: string): number {
-  const elapsed = Date.now() - new Date(when).getTime();
-  return Math.floor(elapsed / 86_400_000);
+/**
+ * How long ago, at whatever scale reads right.
+ *
+ * A queue is scanned, so every value is two characters and a unit: minutes
+ * under an hour, hours under two days, then days. "0h" for a seven-minute
+ * episode reads like a bug.
+ */
+export function since(when: string, until?: string | null): string {
+  const end = until ? new Date(until).getTime() : Date.now();
+  const minutes = Math.max(0, (end - new Date(when).getTime()) / 60_000);
+  if (minutes < 60) return `${Math.round(minutes)}m`;
+  if (minutes < 60 * 48) return `${Math.round(minutes / 60)}h`;
+  return `${Math.round(minutes / 1440)}d`;
+}
+
+/** Where a pull request lives on GitHub. */
+export function githubUrl(
+  owner: string,
+  name: string,
+  number: number,
+): string {
+  return `https://github.com/${owner}/${name}/pull/${number}`;
 }

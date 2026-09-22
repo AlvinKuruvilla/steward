@@ -191,6 +191,11 @@ class Summary:
     comments: int
     author: str | None
     author_is_bot: bool
+    # The last thing that happened, which answers "why has this not moved" far
+    # better than a timestamp does.
+    last_kind: EventKind | None
+    last_actor: str | None
+    last_at: datetime | None
 
 
 def summarise(events: Iterable[Event]) -> Summary:
@@ -225,10 +230,14 @@ def summarise(events: Iterable[Event]) -> Summary:
         elif event.kind is EventKind.COMMENT:
             comments += 1
 
+    last = ordered[-1] if ordered else None
     return Summary(
         title=title,
         labels=tuple(labels),
         comments=comments,
         author=author,
         author_is_bot=author_is_bot,
+        last_kind=last.kind if last else None,
+        last_actor=last.actor if last else None,
+        last_at=last.occurred_at if last else None,
     )

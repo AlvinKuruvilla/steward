@@ -1,16 +1,18 @@
 import { useQuery } from "@tanstack/react-query";
-import { MessageSquare } from "lucide-react";
-import { useState } from "react";
-import { Link, useOutletContext } from "react-router";
+import { ChevronRight, ExternalLink, MessageSquare } from "lucide-react";
+import { useCallback, useMemo, useState } from "react";
+import { Link, useNavigate, useOutletContext } from "react-router";
 
 import {
-  daysSince,
   get,
+  githubUrl,
+  since,
   type Repository,
   type Standing,
 } from "@/api";
 import { Avatar } from "@/components/avatar";
 import { StateMark } from "@/components/state-mark";
+import { useKeys } from "@/keys";
 import { Badge } from "@/components/ui/badge";
 import {
   Empty,
@@ -57,6 +59,8 @@ const groups: {
 
 export function Component() {
   const repository = useOutletContext<Repository | undefined>();
+  const navigate = useNavigate();
+  const [cursor, setCursor] = useState(0);
   const { data, error, isPending } = useQuery({
     queryKey: ["pulls", repository?.owner, repository?.name],
     enabled: Boolean(repository) && !repository?.syncing,
@@ -65,6 +69,52 @@ export function Component() {
         `/api/repositories/${repository!.owner}/${repository!.name}/pulls`,
       ),
   });
+
+  // Everything the keys can land on, in the order the eye reads them. Bots are
+  // collapsed by default and excluded: a cursor that walks into a hidden group
+  // looks broken.
+  const walkable = useMemo(
+    () =>
+      (data ?? []).filter((row) =>
+        groups.slice(0, 3).some((group) => group.holds(row)),
+      ),
+    [data],
+  );
+
+  const at = walkable[Math.min(cursor, walkable.length - 1)];
+  const move = useCallback(
+    (by: number) =>
+      setCursor((was) =>
+        Math.max(0, Math.min(was + by, Math.max(0, walkable.length - 1))),
+      ),
+    [walkable.length],
+  );
+
+  useKeys(
+    useMemo(
+      () => ({
+        next: () => move(1),
+        previous: () => move(-1),
+        open: () => {
+          if (at && repository) {
+            void navigate(
+              `/${repository.owner}/${repository.name}/pulls/${at.number}`,
+            );
+          }
+        },
+        openExternally: () => {
+          if (at && repository) {
+            window.open(
+              githubUrl(repository.owner, repository.name, at.number),
+              "_blank",
+              "noreferrer",
+            );
+          }
+        },
+      }),
+      [at, move, navigate, repository],
+    ),
+  );
 
   if (!repository) return <Welcome />;
   if (repository.syncing) return <Reading repository={repository} />;
@@ -94,9 +144,16 @@ export function Component() {
           </h2>
           <p className="pt-1.5 text-[13px] text-muted-foreground">
             {data.length} open pull requests, read from{" "}
-            <span className="font-mono">{repository.owner}/{repository.name}</span>.
+            <span className="font-mono">
+              {repository.owner}/{repository.name}
+            </span>
+            .
           </p>
         </div>
+        <p className="hidden shrink-0 text-xs text-muted-foreground sm:block">
+          <Key>j</Key> <Key>k</Key> move · <Key>↵</Key> open ·{" "}
+          <Key>o</Key> on GitHub
+        </p>
       </div>
 
       <div className="flex flex-col gap-7">
@@ -111,11 +168,20 @@ export function Component() {
               rows={rows}
               repository={repository}
               collapsed={group.title === "Bots"}
+              cursorOn={at?.number}
             />
           );
         })}
       </div>
     </>
+  );
+}
+
+function Key({ children }: { children: React.ReactNode }) {
+  return (
+    <kbd className="rounded border border-border bg-muted px-1 font-mono text-[10px] text-foreground">
+      {children}
+    </kbd>
   );
 }
 
@@ -125,12 +191,14 @@ function Group({
   rows,
   repository,
   collapsed,
+  cursorOn,
 }: {
   title: string;
   note: string;
   rows: Standing[];
   repository: Repository;
   collapsed: boolean;
+  cursorOn: number | undefined;
 }) {
   const [open, setOpen] = useState(!collapsed);
 
@@ -139,8 +207,14 @@ function Group({
       <button
         type="button"
         onClick={() => setOpen((was) => !was)}
-        className="group flex w-full items-baseline gap-2 pb-1.5 text-left"
+        className="group flex w-full items-center gap-2 pb-1.5 text-left"
       >
+        <ChevronRight
+          aria-hidden
+          className={`size-3 shrink-0 text-muted-foreground transition-transform ${
+            open ? "rotate-90" : ""
+          }`}
+        />
         <span className="text-[11px] font-medium tracking-[0.08em] text-foreground uppercase">
           {title}
         </span>
@@ -148,9 +222,7 @@ function Group({
           {rows.length}
         </span>
         <span className="truncate text-xs text-muted-foreground">{note}</span>
-        <span className="ml-auto shrink-0 text-xs text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100">
-          {open ? "hide" : "show"}
-        </span>
+
       </button>
 
       {open ? (
@@ -161,6 +233,7 @@ function Group({
               repository={repository}
               standing={standing}
               first={index === 0}
+              under={standing.number === cursorOn}
             />
           ))}
         </div>
@@ -173,18 +246,25 @@ function Row({
   repository,
   standing,
   first,
+  under,
 }: {
   repository: Repository;
   standing: Standing;
   first: boolean;
+  under: boolean;
 }) {
   return (
     <Link
       to={`/${repository.owner}/${repository.name}/pulls/${standing.number}`}
       className={[
-        "grid grid-cols-[minmax(0,1fr)_10rem_2.75rem_2.75rem] items-center gap-4 px-3.5 py-2.5",
+        "group/row grid grid-cols-[minmax(0,1fr)_10rem_2.75rem_3rem_1.75rem] items-center gap-4 px-3.5 py-2.5",
         "transition-colors hover:bg-muted",
         first ? "" : "border-t border-border",
+        // A bar rather than a fill: a filled row puts muted text on a mid
+        // grey and the whole line loses contrast.
+        under
+          ? "relative bg-accent/50 before:absolute before:inset-y-0 before:left-0 before:w-[2px] before:bg-foreground"
+          : "",
       ].join(" ")}
     >
       <span className="flex min-w-0 items-center gap-2.5">
@@ -198,6 +278,15 @@ function Row({
           <span className="truncate">
             {standing.author ?? "author since deleted"}
           </span>
+          {standing.last_kind ? (
+            <span className="hidden truncate md:inline">
+              · last:{" "}
+              <span className="font-mono">
+                {standing.last_kind.replace(/_/g, " ")}
+              </span>
+              {standing.last_at ? ` ${since(standing.last_at)} ago` : ""}
+            </span>
+          ) : null}
           {standing.labels.slice(0, 2).map((label) => (
             <Badge
               key={label}
@@ -228,10 +317,22 @@ function Row({
 
       <span
         className="text-right font-mono text-xs tabular-nums text-muted-foreground"
-        title={`unchanged for ${daysSince(standing.since)} days`}
+        title={`in ${standing.state} since ${new Date(standing.since).toLocaleString()}`}
       >
-        {daysSince(standing.since)}d
+        {since(standing.since)}
       </span>
+
+      <a
+        href={githubUrl(repository.owner, repository.name, standing.number)}
+        target="_blank"
+        rel="noreferrer"
+        onClick={(event) => event.stopPropagation()}
+        title="Open on GitHub"
+        className="rounded p-1 text-muted-foreground opacity-0 transition-opacity hover:bg-muted hover:text-foreground focus-visible:opacity-100 group-hover/row:opacity-100"
+      >
+        <ExternalLink className="size-3.5" aria-hidden />
+        <span className="sr-only">Open #{standing.number} on GitHub</span>
+      </a>
     </Link>
   );
 }

@@ -1,7 +1,14 @@
 import { useQuery } from "@tanstack/react-query";
 import { Link, useParams } from "react-router";
 
-import { get, type Derivation, type PullRequest, type WorkflowState } from "@/api";
+import {
+  get,
+  githubUrl,
+  since,
+  type Derivation,
+  type PullRequest,
+  type WorkflowState,
+} from "@/api";
 import { StateMark } from "@/components/state-mark";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -50,9 +57,17 @@ export function Component() {
           blockedOn={data.standing.blocked_on}
           derivation={data.standing.derivation}
         />
-        <span className="text-[13px] text-muted-foreground">
-          opened by {data.standing.author ?? "an account since deleted"}
+        <span className="truncate text-[13px] text-muted-foreground">
+          {data.standing.title}
         </span>
+        <a
+          href={githubUrl(owner!, name!, data.standing.number)}
+          target="_blank"
+          rel="noreferrer"
+          className="ml-auto shrink-0 text-xs text-muted-foreground hover:text-foreground"
+        >
+          open on GitHub ↗
+        </a>
       </header>
 
       <div className="grid gap-10 lg:grid-cols-[minmax(0,22rem)_minmax(0,1fr)]">
@@ -71,8 +86,8 @@ export function Component() {
                       derivation={episode.derivation}
                     />
                   </TableCell>
-                  <TableCell className="w-20 text-right font-mono text-[11px] tabular-nums text-muted-foreground">
-                    {span(episode.start, episode.end)}
+                  <TableCell className="w-24 text-right font-mono text-[11px] tabular-nums whitespace-nowrap text-muted-foreground">
+                    {since(episode.start, episode.end)}{episode.end ? "" : " so far"}
                   </TableCell>
                 </TableRow>
               ))}
@@ -91,28 +106,25 @@ export function Component() {
             <TableBody>
               {data.events.map((moment, index) => (
                 <TableRow key={`${moment.occurred_at}-${index}`}>
-                  <TableCell className="w-32 font-mono text-[11px] tabular-nums text-muted-foreground">
+                  <TableCell className="w-32 align-top font-mono text-[11px] tabular-nums text-muted-foreground">
                     <time dateTime={moment.occurred_at}>
                       {stamp(moment.occurred_at)}
                     </time>
                   </TableCell>
-                  <TableCell className="w-36 truncate font-mono text-xs text-foreground">
+                  <TableCell className="w-36 align-top font-mono text-xs text-foreground">
                     {moment.kind}
                   </TableCell>
                   <TableCell className="max-w-0">
-                    <span className="flex min-w-0 items-baseline gap-2">
-                      <span className="truncate text-xs text-muted-foreground">
-                        {moment.actor ?? "—"}
-                      </span>
-                      {Object.entries(moment.payload).map(([key, value]) => (
-                        <span
-                          key={key}
-                          className="truncate font-mono text-[11px] text-muted-foreground"
-                        >
-                          {key}={String(value)}
-                        </span>
-                      ))}
+                    <span className="block truncate text-xs text-foreground">
+                      {moment.actor ?? "—"}
                     </span>
+                    {Object.entries(moment.payload).length > 0 ? (
+                      <span className="block pt-0.5 font-mono text-[11px] break-all text-muted-foreground">
+                        {Object.entries(moment.payload)
+                          .map(([key, value]) => `${key}=${String(value)}`)
+                          .join("  ")}
+                      </span>
+                    ) : null}
                   </TableCell>
                 </TableRow>
               ))}
@@ -131,14 +143,6 @@ function stamp(when: string): string {
     hour: "2-digit",
     minute: "2-digit",
   });
-}
-
-/** How long an episode lasted, or that it is the one still running. */
-function span(start: string, end: string | null): string {
-  const finished = end ? new Date(end).getTime() : Date.now();
-  const hours = (finished - new Date(start).getTime()) / 3_600_000;
-  const measure = hours < 48 ? `${Math.round(hours)}h` : `${Math.round(hours / 24)}d`;
-  return end ? measure : `${measure}, still`;
 }
 
 function sentence(state: WorkflowState, derivation: Derivation): string {
