@@ -24,19 +24,19 @@ deferred problems live in `SESSION.md`.
 
 2. **Dockerfile.** `compose.yaml` declares `build: .` and there is no Dockerfile.
 
-3. **Sync.** The normalizer is done and runs clean over the corpus: 125 pull
-   requests, 1,722 events, 130 requests. What is left between it and
-   `steward sync`:
+3. **Sync.** `fetch.events()` reads a whole repository through paged requests
+   and normalizes it: precogly's full history is 259 pull requests and 1,889
+   events, no failures. What is left between that and `steward sync`:
 
-   - **Pagination.** Both `pulls.list` and the timeline are read one page deep.
-     githubkit has `paginate`; nothing calls it yet, so a pull request with more
-     than 100 timeline items is truncated -- the bug `fetch_prs.py` had.
    - **The subjects snapshot.** `PullRequestSimple` carries title, draft state,
      base and head refs, and nothing writes them to `subjects`.
+   - **Resumability.** A sync reads every pull request every time. `since` on
+     `pulls.list`, or the `last_sync` column `repositories` already has, would
+     make a second run cheap; ROADMAP asks for resumable and interruptible.
    - **Recording.** `tests/data/precogly_rest_timeline.json` was recorded by
-     hand. `steward sync` should be able to record its own cassettes, which is
-     what ROADMAP.md's hermetic test story rests on.
-   - **Writing rows,** which needs the migration runner below.
+     hand. `steward sync` should record its own cassettes, which is what
+     ROADMAP.md's hermetic test story rests on.
+   - **Writing rows,** which needs the migration runner above.
 
 4. **`steward sync` / `steward events`,** then V0's acceptance: sync twice and
    add zero rows; truncate everything below the log, replay, diff identical.
