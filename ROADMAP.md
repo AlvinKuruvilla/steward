@@ -15,6 +15,7 @@ can be re-measured.
 |---|---|---|
 | V1 surface | pull requests | Chosen over issues-first. The consequence is in *Validation* below. |
 | Backend | Python | Start here; swap the engine for something faster if a profile demands it. |
+| GitHub API | REST, via `githubkit` | GraphQL was built and removed. REST names the team on a review request, which GraphQL nulls; it costs `willCloseTarget` and an id on cross-references. |
 | Store | PostgreSQL | Replaces the local-first SQLite shape. See *The shape this implies*. |
 | Deployment | self-hosted, `docker compose up` | CLI plus a local web UI, both talking to your own Postgres. |
 | LLM policy | hard architectural boundary | [`docs/design/0001-llm-boundary.md`](docs/design/0001-llm-boundary.md) |
@@ -49,16 +50,18 @@ replayed.
   engine never has the grants it is not allowed to have. `compose.override.yml`
   mounts the source for development; the committed compose file is what a
   stranger runs.
-- GraphQL backfill for one repository: pull requests with commits, reviews,
-  review requests, ready-for-review and convert-to-draft events, label and
-  assignment changes, force pushes, merges and closes.
+- REST backfill for one repository, from the issue timeline: commits, reviews,
+  review requests and dismissals, ready-for-review and convert-to-draft events,
+  label and assignment changes, force pushes, merges, closes and
+  cross-references. Seventeen event kinds; anything else is either named as
+  carrying no state or is an error.
 - An append-only `events` table. Rows are immutable. Nothing else writes to it.
 - `steward sync <owner>/<repo>` — resumable, idempotent, safe to interrupt.
 - `steward events <pr>` — the raw stream for one PR, oldest first.
 
 **Acceptance.** Sync precogly/precogly twice. The second run adds zero rows.
-Truncate every non-event table, replay, and diff: identical. Event counts match a
-direct GraphQL query per PR.
+Truncate every non-event table, replay, and diff: identical. Event counts match
+the timeline endpoint's own count per pull request.
 
 **Explicitly not here.** No state machine, no UI, no metrics. If ingestion is
 wrong everything above it is wrong, and it is much cheaper to find out now.
@@ -273,8 +276,10 @@ each one catches, and what the corpus still has no example of are in
 [`docs/corpus.md`](docs/corpus.md).
 
 The one concession to CI: HTTP is recorded and replayed at the socket, so runs
-are hermetic and offline. Everything above the socket — pagination,
-normalisation, the fold, the policy layer, the queries — is the production path.
+are hermetic and offline. The normalizer's tests already work this way, through
+`httpx.MockTransport`; what is missing is `steward sync` recording its own.
+Everything above the socket — pagination, normalisation, the fold, the policy
+layer, the queries — is the production path.
 Cassettes are refreshed on a schedule, and a refresh that changes a coverage
 number is a finding to read, not a number to update.
 
