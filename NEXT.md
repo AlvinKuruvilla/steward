@@ -44,6 +44,10 @@ deferred problems live in `SESSION.md`.
 ## Decisions still open
 
 - Migration file location (1 above).
+- Whether Steward writes to GitHub at all. Acting on its own is ruled out;
+  human-initiated writes are not. It decides whether the token, `steward.toml`
+  and the compose file ever carry a write scope, so it is cheaper to settle
+  before V1 ships a UI with buttons on it.
 - Whether `steward.toml` may map a label to a state. Raised by kubernetes, which
   keeps its real state machine in bot-applied labels. Deliberately unanswered
   until V1 has run against it — see `docs/corpus.md`.

@@ -33,12 +33,11 @@ Each answer says where it came from: `EVENT` when the events alone decide it,
 
 ## Non-goals
 
-- No writes to GitHub. No merging, closing, labelling or commenting.
-- No replacement for GitHub's UI. Reviewing, replying and merging happen there.
+- No autonomous action. Nothing is merged, closed, labelled or commented on
+  unless a maintainer asked for it. Nothing runs on a schedule or on a rule.
 - No contributor scores, rankings or promotion suggestions.
-- No language model anywhere near canonical state. Models live in their own
-  package, dependency group and database role, none of which the engine can
-  reach. See [`docs/design/0001-llm-boundary.md`](docs/design/0001-llm-boundary.md).
+- No language model anywhere near canonical state. See
+  [`docs/design/0001-llm-boundary.md`](docs/design/0001-llm-boundary.md).
 
 ## Development
 

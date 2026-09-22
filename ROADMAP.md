@@ -280,8 +280,15 @@ number is a finding to read, not a number to update.
 
 ## Non-goals
 
-- Steward never writes to GitHub. No merging, closing, labelling, or commenting.
-- Steward does not replace GitHub's UI. Reviewing code, replying, and merging all
-  happen on GitHub, and every Steward row links there.
+- Steward never acts on its own. Nothing is merged, closed, labelled or
+  commented on unless a maintainer asked for that action, and nothing runs on a
+  schedule or on a rule.
 - No contributor scores, health scores, or quality ratings.
-- No autonomous action of any kind, by a model or by a rule.
+
+Whether Steward writes to GitHub at all is open. Read-only keeps a property
+worth something: the token can be read-only, so a stranger can check that
+Steward cannot damage a repository before pointing it at one. Against that, a
+workbench that can only watch leaves the maintainer switching tabs to act.
+
+No longer a non-goal: replacing parts of GitHub's UI. Reviewing code is the
+obvious candidate.
