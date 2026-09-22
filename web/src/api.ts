@@ -32,6 +32,9 @@ export interface Repository {
   owner: string;
   name: string;
   last_sync: string | null;
+  syncing: boolean;
+  pull_requests_read: number;
+  sync_error: string | null;
 }
 
 export async function get<T>(path: string): Promise<T> {
@@ -41,6 +44,21 @@ export async function get<T>(path: string): Promise<T> {
       detail?: string;
     } | null;
     throw new Error(body?.detail ?? `${response.status} from ${path}`);
+  }
+  return (await response.json()) as T;
+}
+
+export async function post<T>(path: string, body: unknown): Promise<T> {
+  const response = await fetch(path, {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify(body),
+  });
+  if (!response.ok) {
+    const problem = (await response.json().catch(() => null)) as {
+      detail?: string;
+    } | null;
+    throw new Error(problem?.detail ?? `${response.status} from ${path}`);
   }
   return (await response.json()) as T;
 }

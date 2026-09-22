@@ -8,8 +8,8 @@ and the difference is the product.
 from __future__ import annotations
 
 import os
-from collections.abc import Iterator
-from contextlib import contextmanager
+from collections.abc import AsyncIterator, Iterator
+from contextlib import asynccontextmanager, contextmanager
 from datetime import datetime
 from pathlib import Path
 from typing import Any
@@ -22,11 +22,30 @@ from starlette.exceptions import HTTPException as StarletteHTTPException
 from starlette.responses import Response
 from starlette.types import Scope
 
+from steward import sync
+from steward.migrate import apply
 from steward.model import Event, payload_to_dict
 from steward.state import BlockedOn, Derivation, WorkflowState, current, fold
 from steward.store import read_events, repositories
 
-app = FastAPI(title="Steward", docs_url="/api/docs", openapi_url="/api/openapi.json")
+
+@asynccontextmanager
+async def lifespan(_: FastAPI) -> AsyncIterator[None]:
+    """Bring the schema up to date, so starting the app is the whole install."""
+    admin = os.environ.get("STEWARD_ADMIN_DATABASE_URL")
+    if admin:
+        with psycopg.connect(admin) as conn:
+            for migration in apply(conn):
+                print(f"applied {migration.version:04d}_{migration.name}")
+    yield
+
+
+app = FastAPI(
+    title="Steward",
+    docs_url="/api/docs",
+    openapi_url="/api/openapi.json",
+    lifespan=lifespan,
+)
 
 
 class Repository(BaseModel):
@@ -35,6 +54,14 @@ class Repository(BaseModel):
     owner: str
     name: str
     last_sync: datetime | None
+    syncing: bool = False
+    pull_requests_read: int = 0
+    sync_error: str | None = None
+
+
+class AddRepository(BaseModel):
+    owner: str
+    name: str
 
 
 class Standing(BaseModel):
@@ -97,12 +124,48 @@ def _author(events: list[Event]) -> str | None:
 
 @app.get("/api/repositories")
 def get_repositories() -> list[Repository]:
-    """Every repository that has been synced."""
+    """Every repository that has been synced, and any sync now running."""
     with _connect() as conn:
-        return [
-            Repository(owner=owner, name=name, last_sync=last_sync)
-            for owner, name, last_sync in repositories(conn)
-        ]
+        known = repositories(conn)
+
+    rows = {
+        (owner, name): Repository(owner=owner, name=name, last_sync=last_sync)
+        for owner, name, last_sync in known
+    }
+    # A repository being read for the first time has no row yet, so the
+    # in-flight syncs are folded in rather than looked up.
+    for state in sync.everything():
+        row = rows.setdefault(
+            (state.owner, state.name),
+            Repository(owner=state.owner, name=state.name, last_sync=None),
+        )
+        row.syncing = state.running
+        row.pull_requests_read = state.pull_requests
+        row.sync_error = state.error
+    return sorted(rows.values(), key=lambda r: (r.owner, r.name))
+
+
+# async, because starting the sync needs the running event loop that FastAPI
+# gives an async endpoint and not the threadpool it gives a sync one.
+@app.post("/api/repositories", status_code=202)
+async def add_repository(body: AddRepository) -> Repository:
+    """Start reading a repository's history. Returns before it finishes."""
+    token = os.environ.get("GITHUB_TOKEN")
+    if not token:
+        raise HTTPException(500, "GITHUB_TOKEN is not set")
+    database_url = os.environ.get("STEWARD_DATABASE_URL")
+    if not database_url:
+        raise HTTPException(500, "STEWARD_DATABASE_URL is not set")
+
+    state = sync.start(body.owner, body.name, token=token, database_url=database_url)
+    return Repository(
+        owner=state.owner,
+        name=state.name,
+        last_sync=None,
+        syncing=state.running,
+        pull_requests_read=state.pull_requests,
+        sync_error=state.error,
+    )
 
 
 @app.get("/api/repositories/{owner}/{name}/pulls")

@@ -58,7 +58,8 @@ fix:
     uv run ruff format src tests
     uv run ruff check --fix src tests
 
-# From nothing to a populated interface.
+# From nothing to a populated interface. A shortcut, not a dependency: the app
+# adds and syncs a repository from its own interface.
 fresh repository="precogly/precogly": clean up
-    @just sync {{repository}}
+    just sync {{repository}}
     @echo "http://127.0.0.1:8000"

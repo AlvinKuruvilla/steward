@@ -1,6 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
+import { useOutletContext } from "react-router";
 
-import { daysSince, get, type BlockedOn, type Standing } from "@/api";
+import { daysSince, get, type BlockedOn, type Repository, type Standing } from "@/api";
 import { StateChip } from "@/components/state-chip";
 
 /**
@@ -14,12 +15,32 @@ const groups: { title: string; holds: (blocked: BlockedOn) => boolean }[] = [
 ];
 
 export function Component() {
+  const repository = useOutletContext<Repository | undefined>();
   const { data, error, isPending } = useQuery({
-    queryKey: ["pulls", "precogly", "precogly"],
+    queryKey: ["pulls", repository?.owner, repository?.name],
+    enabled: Boolean(repository) && !repository?.syncing,
     queryFn: () =>
-      get<Standing[]>("/api/repositories/precogly/precogly/pulls"),
+      get<Standing[]>(
+        `/api/repositories/${repository!.owner}/${repository!.name}/pulls`,
+      ),
   });
 
+  if (!repository) {
+    return (
+      <p className="text-sm text-[var(--color-secondary)]">
+        Nothing synced yet. Add a repository above.
+      </p>
+    );
+  }
+  if (repository.syncing) {
+    return (
+      <p className="text-sm text-[var(--color-secondary)]">
+        Reading {repository.owner}/{repository.name}…{" "}
+        <span className="derived">{repository.pull_requests_read}</span> pull
+        requests so far.
+      </p>
+    );
+  }
   if (isPending) {
     return <p className="text-sm text-[var(--color-secondary)]">Reading…</p>;
   }

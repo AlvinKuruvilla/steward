@@ -12,8 +12,9 @@ const router = createBrowserRouter([
     Component: App,
     children: [
       { index: true, lazy: () => import("@/routes/inbox") },
-      { path: "pulls", lazy: () => import("@/routes/inbox") },
-      { path: "bots", lazy: () => import("@/routes/inbox") },
+      { path: ":owner/:name", lazy: () => import("@/routes/inbox") },
+      { path: ":owner/:name/pulls", lazy: () => import("@/routes/inbox") },
+      { path: ":owner/:name/bots", lazy: () => import("@/routes/inbox") },
     ],
   },
 ]);
