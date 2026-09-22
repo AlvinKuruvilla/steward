@@ -23,8 +23,8 @@ import httpx
 import pytest
 from githubkit import GitHub
 
-from steward.model import KIND_FOR_TYPENAME, EventKind, validate_payload
-from steward.normalize import IGNORED, events_for_pull_request
+from steward.model import EventKind, validate_payload
+from steward.normalize import IGNORED, KIND_FOR_EVENT, events_for_pull_request
 
 FIXTURE = Path(__file__).parent / "data" / "precogly_rest_timeline.json"
 TIMELINE = re.compile(r"^/repos/precogly/precogly/issues/(\d+)/timeline$")
@@ -71,6 +71,29 @@ def test_every_item_becomes_an_event_or_is_named_as_ignored(
         ]
         # Plus OPENED, which GitHub emits no timeline item for.
         assert len(events_for_pull_request(pr, timeline)) == len(kept) + 1
+
+
+def test_every_kind_but_opened_is_reachable_from_an_event_name() -> None:
+    # A kind nothing maps onto can never be ingested. OPENED is the exception:
+    # GitHub emits no timeline item when a pull request opens.
+    assert set(EventKind) - set(KIND_FOR_EVENT.values()) == {EventKind.OPENED}
+
+
+def test_the_dispatch_agrees_with_the_table(github: GitHub[Any]) -> None:
+    # KIND_FOR_EVENT is only a claim about the log unless the branches that set
+    # `kind` are held to it. Every event produced here must be the kind the
+    # table names for the item it came from.
+    for pr, timeline in _pulls_and_timelines(github):
+        events = events_for_pull_request(pr, timeline)
+        by_source = {event.source_id: event for event in events}
+        for item in timeline:
+            name = getattr(item, "event", type(item).__name__)
+            if name in IGNORED:
+                continue
+            node_id = getattr(item, "node_id", None)
+            if node_id is None:  # a cross reference, whose key is synthesized
+                continue
+            assert by_source[node_id].kind is KIND_FOR_EVENT[name]
 
 
 def test_payloads_match_their_kinds(github: GitHub[Any]) -> None:
@@ -124,7 +147,7 @@ def test_recording_exercises_most_of_the_model(github: GitHub[Any]) -> None:
     }
     # Naming the gap is the point: these kinds have no coverage here, and the
     # corpus cassettes are what will have to supply them.
-    missing = set(KIND_FOR_TYPENAME.values()) - set(seen)
+    missing = set(KIND_FOR_EVENT.values()) - set(seen)
     assert missing == {
         EventKind.ASSIGNED,
         EventKind.UNASSIGNED,

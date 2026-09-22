@@ -11,9 +11,11 @@ from enum import Enum, StrEnum
 class PullRequestReviewState(StrEnum):
     "The radio button a reviewer picked when they submitted a review"
 
-    # Ref: https://docs.github.com/en/graphql/reference/pulls#enum-pullrequestreviewstate
+    # Ref: https://docs.github.com/en/rest/pulls/reviews
 
-    # NOTE: Values mirror GitHub's enum verbatim; they arrive over the wire.
+    # NOTE: These spellings are ours. REST sends "changes_requested" lowercase
+    # on a timeline item and uppercase on the reviews endpoint; the normalizer
+    # upper-cases.
 
     # A review still being drafted. You only ever see your own, so we never
     # ingest one.
@@ -24,35 +26,38 @@ class PullRequestReviewState(StrEnum):
     APPROVED = "APPROVED"
     CHANGES_REQUESTED = "CHANGES_REQUESTED"
     # NOTE: Not trustworthy as a review's state. GitHub rewrites the review in
-    # place on dismissal; the original is ReviewDismissedEvent.previousReviewState.
+    # place on dismissal; the original is the dismissal event's
+    # `dismissed_review.state`.
     DISMISSED = "DISMISSED"
 
 
 class ActorType(StrEnum):
     "What kind of account acted, or was named by an event"
 
-    # Ref: https://docs.github.com/en/graphql/reference/users#interface-actor
+    # Ref: https://docs.github.com/en/rest/users/users
 
-    # NOTE: Values mirror GraphQL __typename verbatim; they arrive over the wire.
-    # Teams appear here because a review can be requested from one, and a Team
-    # has no login -- see ActorRef.
+    # NOTE: The first four mirror REST's `type` on a user verbatim; they arrive
+    # over the wire. TEAM does not. A team is a separate object with no `type`
+    # field, and it is here because a review can be requested from one -- see
+    # ActorRef.
+    #
+    # Deliberately absent: EnterpriseTeam and EnterpriseUserAccount, GraphQL
+    # __typename values with no REST counterpart.
     USER = "User"
     BOT = "Bot"
     ORGANIZATION = "Organization"
     MANNEQUIN = "Mannequin"
     TEAM = "Team"
-    ENTERPRISE_TEAM = "EnterpriseTeam"
-    ENTERPRISE_USER_ACCOUNT = "EnterpriseUserAccount"
 
 
 class IssueStateReason(StrEnum):
     "Why an issue is in the state it is in"
 
-    # Ref: https://docs.github.com/en/graphql/reference/issues#enum-issuestatereason
+    # Ref: https://docs.github.com/en/rest/issues/issues
 
-    # NOTE: Values mirror GitHub's enum verbatim; they arrive over the wire.
-    # REOPENED is here because this is the issue's state reason, not a reason
-    # for closing.
+    # NOTE: These spellings are ours; REST sends "not_planned" lowercase and the
+    # normalizer upper-cases. REOPENED is here because this is the issue's
+    # state reason, not a reason for closing.
     COMPLETED = "COMPLETED"
     NOT_PLANNED = "NOT_PLANNED"
     DUPLICATE = "DUPLICATE"
@@ -77,7 +82,7 @@ class EventKind(StrEnum):
     computes them at read time from these plus repo policy.
     """
 
-    # Ref: https://docs.github.com/en/graphql/reference/pulls#union-pullrequesttimelineitems
+    # Ref: https://docs.github.com/en/rest/issues/timeline
 
     # GitHub emits no event when a PR opens; we derive it from createdAt. With
     # no node ID to key on, source_id is synthesized as "pr:<number>:opened".
@@ -123,7 +128,7 @@ class EventKind(StrEnum):
 class ActorRef:
     "A user, bot or team an event names"
 
-    # Ref: https://docs.github.com/en/graphql/reference/pulls#union-requestedreviewer
+    # Ref: https://docs.github.com/en/rest/pulls/review-requests
 
     # NOTE: login for users and bots, slug for teams. Team exposes no login
     # field, so a field called login would be null for every team request.
@@ -135,7 +140,7 @@ class ActorRef:
 class ReviewPayload:
     "The state a reviewer submitted"
 
-    # Ref: https://docs.github.com/en/graphql/reference/pulls#object-pullrequestreview
+    # Ref: https://docs.github.com/en/rest/pulls/reviews
 
     state: PullRequestReviewState
 
@@ -144,7 +149,7 @@ class ReviewPayload:
 class DismissalPayload:
     "What a review held before it was dismissed"
 
-    # Ref: https://docs.github.com/en/graphql/reference/pulls#object-reviewdismissedevent
+    # Ref: https://docs.github.com/en/rest/issues/timeline
 
     # NOTE: Nothing else survives the dismissal; GitHub overwrites the review's
     # own state in place.
@@ -156,7 +161,7 @@ class DismissalPayload:
 class LabelPayload:
     "The label added or removed"
 
-    # Ref: https://docs.github.com/en/graphql/reference/issues#object-label
+    # Ref: https://docs.github.com/en/rest/issues/labels
 
     name: str
 
@@ -165,7 +170,7 @@ class LabelPayload:
 class CommitPayload:
     "The commit that landed on the branch"
 
-    # Ref: https://docs.github.com/en/graphql/reference/commits#object-commit
+    # Ref: https://docs.github.com/en/rest/commits/commits
 
     oid: str
 
@@ -174,19 +179,21 @@ class CommitPayload:
 class CrossReferencePayload:
     "Another subject that referenced this one"
 
-    # Ref: https://docs.github.com/en/graphql/reference/issues#object-crossreferencedevent
+    # Ref: https://docs.github.com/en/rest/issues/timeline
 
     source_type: SubjectType
     source_number: int
-    # GitHub's own read of whether merging the source would close this subject.
-    will_close: bool
+
+    # Deliberately absent: whether merging the source would close this subject.
+    # GraphQL answers that with willCloseTarget; REST has no equivalent.
+    # Recovering it means a second API and a re-sync.
 
 
 @dataclass(frozen=True, slots=True)
 class StateReasonPayload:
     "Why an issue changed state"
 
-    # Ref: https://docs.github.com/en/graphql/reference/issues#object-closedevent
+    # Ref: https://docs.github.com/en/rest/issues/events
 
     reason: IssueStateReason
 
@@ -239,35 +246,6 @@ PAYLOAD_FOR: dict[EventKind, PayloadType | None] = {
 }
 
 
-# The log stores normalized events and nothing else, so a timeline item with no
-# kind here is discarded at sync time and is only recoverable by re-syncing the
-# repository. `scripts/gen_timeline_query.py` reads this to build the query's
-# itemTypes filter, which is what keeps the query from asking for items the
-# model would throw away.
-#
-# EventKind.OPENED is absent on purpose: GitHub emits no timeline item when a
-# pull request opens, and it is derived from createdAt instead.
-KIND_FOR_TYPENAME: dict[str, EventKind] = {
-    "ReadyForReviewEvent": EventKind.READY_FOR_REVIEW,
-    "ConvertToDraftEvent": EventKind.CONVERT_TO_DRAFT,
-    "ReopenedEvent": EventKind.REOPENED,
-    "ClosedEvent": EventKind.CLOSED,
-    "MergedEvent": EventKind.MERGED,
-    "PullRequestCommit": EventKind.COMMIT,
-    "HeadRefForcePushedEvent": EventKind.FORCE_PUSHED,
-    "PullRequestReview": EventKind.REVIEW,
-    "ReviewRequestedEvent": EventKind.REVIEW_REQUESTED,
-    "ReviewRequestRemovedEvent": EventKind.REVIEW_REQUEST_REMOVED,
-    "ReviewDismissedEvent": EventKind.REVIEW_DISMISSED,
-    "AssignedEvent": EventKind.ASSIGNED,
-    "UnassignedEvent": EventKind.UNASSIGNED,
-    "LabeledEvent": EventKind.LABELED,
-    "UnlabeledEvent": EventKind.UNLABELED,
-    "IssueComment": EventKind.COMMENT,
-    "CrossReferencedEvent": EventKind.CROSS_REFERENCED,
-}
-
-
 @dataclass(frozen=True, slots=True)
 class Event:
     "One row of the event log"
@@ -316,12 +294,12 @@ def validate_payload(kind: EventKind, payload: Payload) -> None:
 
 # The JSONB round trip.
 #
-# Payload shapes are flat and hold only str, int, bool and StrEnum fields, so
-# both directions are plain field access. Encoding is uniform enough to do by
-# reflection; decoding is written out per shape instead, so that mypy checks
-# every construction against the dataclass it is rebuilding. The cost is that
-# field names appear here as well as on the dataclass, and only
-# `test_payload_round_trips` catches a rename that misses one.
+# Payload shapes are flat and hold only str, int and StrEnum fields, so both
+# directions are plain field access. Encoding goes by reflection. Decoding is
+# written out per shape, which lets mypy check every construction against the
+# dataclass it rebuilds; the price is that field names appear here as well as on
+# the dataclass, and only `test_payload_round_trips` catches a rename that
+# misses one.
 
 type JsonValue = str | int | bool
 
@@ -367,7 +345,6 @@ def payload_from_dict(kind: EventKind, data: Mapping[str, JsonValue]) -> Payload
         return CrossReferencePayload(
             source_type=SubjectType(_str(data, "source_type")),
             source_number=_int(data, "source_number"),
-            will_close=_bool(data, "will_close"),
         )
     if shape is StateReasonPayload:
         return StateReasonPayload(reason=IssueStateReason(_str(data, "reason")))
@@ -400,15 +377,8 @@ def _str(data: Mapping[str, JsonValue], name: str) -> str:
 
 def _int(data: Mapping[str, JsonValue], name: str) -> int:
     value = _field(data, name)
-    # bool is an int in Python, and `will_close` sitting next to `source_number`
-    # makes a JSON `true` reaching an int field a live mistake.
+    # bool is an int in Python, so without the second check a JSON `true`
+    # would satisfy an integer field.
     if not isinstance(value, int) or isinstance(value, bool):
         raise ValueError(f"payload field {name} must be an integer, got {value!r}")
-    return value
-
-
-def _bool(data: Mapping[str, JsonValue], name: str) -> bool:
-    value = _field(data, name)
-    if not isinstance(value, bool):
-        raise ValueError(f"payload field {name} must be a boolean, got {value!r}")
     return value

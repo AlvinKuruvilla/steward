@@ -24,19 +24,18 @@ deferred problems live in `SESSION.md`.
 
 2. **Dockerfile.** `compose.yaml` declares `build: .` and there is no Dockerfile.
 
-3. **Sync.** The normalizer is done and runs clean over the corpus. What is
-   left between it and `steward sync`:
+3. **Sync.** The normalizer is done and runs clean over the corpus: 125 pull
+   requests, 1,722 events, 130 requests. What is left between it and
+   `steward sync`:
 
-   - **Timeline pagination.** `PullRequestTimelinePage` exists in the query but
-     nothing calls it. A pull request with more than 100 items is silently
-     truncated today, which is the bug `fetch_prs.py` had.
-   - **A second set of models.** ariadne-codegen does not hoist a union fragment
-     into `fragments.py`, so the timeline page operation has its own parallel
-     classes and `events_for_pull_request` only accepts the first operation's.
-     Either re-validate one into the other, or take the page models as the only
-     input and hand the paginator dicts.
-   - **The subjects snapshot.** `PullRequestSnapshot` is fetched and nothing
-     writes it to `subjects`.
+   - **Pagination.** Both `pulls.list` and the timeline are read one page deep.
+     githubkit has `paginate`; nothing calls it yet, so a pull request with more
+     than 100 timeline items is truncated -- the bug `fetch_prs.py` had.
+   - **The subjects snapshot.** `PullRequestSimple` carries title, draft state,
+     base and head refs, and nothing writes them to `subjects`.
+   - **Recording.** `tests/data/precogly_rest_timeline.json` was recorded by
+     hand. `steward sync` should be able to record its own cassettes, which is
+     what ROADMAP.md's hermetic test story rests on.
    - **Writing rows,** which needs the migration runner below.
 
 4. **`steward sync` / `steward events`,** then V0's acceptance: sync twice and

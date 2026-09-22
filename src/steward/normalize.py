@@ -1,19 +1,19 @@
 """GitHub's timeline, as Steward's events.
 
-The log stores normalized events and nothing else, so this is the one place a
-mistake becomes permanent: an event mapped wrong is written wrong, and fixing it
-means re-syncing the repository, which re-reads GitHub as it is now rather than
-as it was. Every event goes through `validate_payload` before it is constructed.
+A mistake here is permanent. The log stores normalized events and nothing else,
+so an event mapped wrong is written wrong, and correcting it means re-syncing
+the repository -- which reads GitHub as it is now, not as it was. Every event
+goes through `validate_payload` before it is constructed.
 
-Dispatch is `isinstance` against githubkit's models, except for the six kinds
-that arrive as `StateChangeIssueEvent` -- REST gives closes, merges, reopens,
-draft conversions and force pushes one model discriminated by an `event` string,
-so those branch on the string instead.
+Dispatch is `isinstance` against githubkit's models. The six kinds REST delivers
+as `StateChangeIssueEvent` -- closes, merges, reopens, draft conversions and
+force pushes -- share one model behind an `event` string, so those branch on the
+string.
 
-Unlike GraphQL's timeline, REST has no `itemTypes` filter, so this module is the
-filter. Events with no bearing on who a pull request waits for are named in
-`IGNORED`; anything in neither that set nor the dispatch raises, so a type
-GitHub adds surfaces at sync time rather than leaving a silent gap in the log.
+REST has no `itemTypes` filter, so this module is the filter. `IGNORED` names
+the events that say nothing about who a pull request waits for. An event in
+neither `IGNORED` nor the dispatch raises, so a type GitHub adds surfaces at
+sync time.
 """
 
 from __future__ import annotations
@@ -58,19 +58,34 @@ from steward.model import (
     validate_payload,
 )
 
-# What a `StateChangeIssueEvent` is, when it is one of ours.
-STATE_CHANGE_KINDS = {
+# Every REST timeline event that becomes one of ours, under the name GitHub
+# gives it. OPENED is absent: GitHub emits no item when a pull request opens.
+#
+# The dispatch reads this only for the six that arrive as
+# `StateChangeIssueEvent`. The other eleven are here so that one table says what
+# the log can contain; `test_normalize` holds the dispatch to it.
+KIND_FOR_EVENT: dict[str, EventKind] = {
+    "assigned": EventKind.ASSIGNED,
     "closed": EventKind.CLOSED,
-    "merged": EventKind.MERGED,
-    "reopened": EventKind.REOPENED,
-    "ready_for_review": EventKind.READY_FOR_REVIEW,
+    "commented": EventKind.COMMENT,
+    "committed": EventKind.COMMIT,
     "convert_to_draft": EventKind.CONVERT_TO_DRAFT,
+    "cross-referenced": EventKind.CROSS_REFERENCED,
     "head_ref_force_pushed": EventKind.FORCE_PUSHED,
+    "labeled": EventKind.LABELED,
+    "merged": EventKind.MERGED,
+    "ready_for_review": EventKind.READY_FOR_REVIEW,
+    "reopened": EventKind.REOPENED,
+    "review_dismissed": EventKind.REVIEW_DISMISSED,
+    "review_request_removed": EventKind.REVIEW_REQUEST_REMOVED,
+    "review_requested": EventKind.REVIEW_REQUESTED,
+    "reviewed": EventKind.REVIEW,
+    "unassigned": EventKind.UNASSIGNED,
+    "unlabeled": EventKind.UNLABELED,
 }
 
-# Events that reach the timeline and say nothing about who a pull request waits
-# for. Naming them, rather than ignoring everything unrecognized, is what makes
-# a new GitHub event type an error instead of a silent gap.
+# Events that reach the timeline and carry no state we model. They are listed
+# so that an unrecognized name is an error.
 IGNORED = frozenset(
     {
         "added_to_project",
@@ -130,7 +145,7 @@ def events_for_pull_request(
     OPENED is not necessarily first. A commit's date is author-controlled and
     survives a rebase, so it can predate the pull request it lands on -- by
     seconds usually, by up to three weeks in the corpus. The log keeps GitHub's
-    timestamp; clamping it forward is a read-time decision for the fold.
+    timestamp. Clamping it forward is the fold's decision, at read time.
     """
     events = [_opened(pr)]
 
@@ -142,8 +157,8 @@ def events_for_pull_request(
         payload: Payload = None
 
         if isinstance(item, TimelineCommittedEvent):
-            # No actor. REST names the commit's author, who is not necessarily
-            # whoever put it on this branch, and guessing would be inventing.
+            # No actor: REST names the commit's author, who is not necessarily
+            # whoever put it on this branch.
             kind = EventKind.COMMIT
             occurred_at = _when(item.committer.date, "commit")
             source_id = item.node_id
@@ -158,7 +173,7 @@ def events_for_pull_request(
             acted_by = _user(item.user)
 
         elif isinstance(item, TimelineReviewedEvent):
-            # A pending review has never been submitted. You can only ever see
+            # A pending review has never been submitted, and you can only see
             # your own, so one reaching here means the fetch changed.
             if item.submitted_at is UNSET or item.submitted_at is None:
                 raise NormalizationError(
@@ -183,13 +198,12 @@ def events_for_pull_request(
             occurred_at = _when(item.created_at, "review request")
             source_id = item.node_id
             acted_by = _user(item.actor)
-            # REST names the team. GraphQL returned null for one it would not
-            # resolve, which is the reason this module is not built on GraphQL.
+            # A review can be requested from a team, which has no login.
             payload = _named(item.requested_reviewer, item.requested_team, item.node_id)
 
         elif isinstance(item, ReviewDismissedIssueEvent):
-            # dismissed_review is the only record of what the review held:
-            # GitHub overwrites the review's own state in place on dismissal.
+            # GitHub overwrites the review's own state on dismissal, so
+            # dismissed_review is the only record of what it held.
             review = item.dismissed_review
             kind = EventKind.REVIEW_DISMISSED
             occurred_at = _when(item.created_at, "dismissal")
@@ -234,9 +248,9 @@ def events_for_pull_request(
                 else SubjectType.ISSUE
             )
             kind, occurred_at = EventKind.CROSS_REFERENCED, item.created_at
-            # The one timeline event REST gives no id of any kind. The key must
-            # be derivable from the event and stable across syncs, so it is
-            # built from what the event reports and never from arrival order.
+            # The one timeline event REST gives no id of any kind. The key is
+            # built from the event's own fields, never from arrival order, so
+            # that a second sync produces the same one.
             source_id = (
                 f"xref:{pr.number}:{source_type.value}:{source.number}"
                 f":{occurred_at.isoformat()}"
@@ -245,16 +259,15 @@ def events_for_pull_request(
             payload = CrossReferencePayload(
                 source_type=source_type,
                 source_number=source.number,
-                # REST has no equivalent of GraphQL's willCloseTarget.
-                will_close=False,
             )
 
         elif isinstance(item, StateChangeIssueEvent):
             if item.event in IGNORED:
                 continue
-            if item.event not in STATE_CHANGE_KINDS:
+            state_change = KIND_FOR_EVENT.get(item.event)
+            if state_change is None:
                 raise NormalizationError(f"unhandled state change {item.event!r}")
-            kind = STATE_CHANGE_KINDS[item.event]
+            kind = state_change
             occurred_at = _when(item.created_at, item.event)
             source_id = item.node_id
             acted_by = _user(item.actor)
@@ -344,17 +357,16 @@ def _actor_type(name: str) -> ActorType:
     try:
         return ActorType(name)
     except ValueError as err:
-        # GitHub widening the set of account types. Better a failed sync than a
-        # row whose actor_type the model cannot read back.
+        # GitHub widening the set of account types. The sync fails here rather
+        # than storing a value the model cannot read back.
         raise NormalizationError(f"unknown actor type {name!r}") from err
 
 
 def _when(value: object, what: str) -> datetime:
-    """A timestamp, from either of the two shapes GitHub's schema uses.
+    """A timestamp, from either shape GitHub's schema uses.
 
-    The issue-event models type `created_at` as a string and the timeline
-    models as a datetime -- GitHub's OpenAPI spec disagreeing with itself,
-    reproduced faithfully by the models generated from it.
+    The issue-event models type `created_at` as a string, the timeline models as
+    a datetime.
     """
     if isinstance(value, datetime):
         return value
