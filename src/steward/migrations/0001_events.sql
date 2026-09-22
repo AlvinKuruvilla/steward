@@ -47,7 +47,9 @@ CREATE TABLE events (
 
     ingested_at TIMESTAMPTZ NOT NULL DEFAULT now(),
 
-    UNIQUE (repo_id, source_id)
+    -- A commit's id is the commit's own, and one commit can sit on two pull
+    -- requests, so identity is the item together with the subject it is on.
+    UNIQUE (repo_id, subject_type, subject_number, source_id)
 );
 
 CREATE INDEX events_subject_idx ON events (repo_id, subject_type, subject_number, occurred_at);
