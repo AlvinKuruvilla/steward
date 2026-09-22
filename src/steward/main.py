@@ -7,6 +7,7 @@ else uses `STEWARD_DATABASE_URL`, which is the engine and cannot create tables.
 
 from __future__ import annotations
 
+import asyncio
 import os
 import sys
 from typing import Annotated, Any
@@ -14,6 +15,7 @@ from typing import Annotated, Any
 import psycopg
 import typer
 from githubkit import GitHub
+from githubkit.throttling import LocalThrottler
 
 from steward import fetch, store
 from steward.migrate import apply
@@ -62,14 +64,26 @@ def migrate() -> None:
 def sync(repository: Annotated[str, typer.Argument(help="owner/repo")]) -> None:
     """Read a repository's pull request history into the log."""
     owner, name = _split(repository)
-    gh: GitHub[Any] = GitHub(_require("GITHUB_TOKEN"))
-    node_id = gh.rest.repos.get(owner=owner, repo=name).parsed_data.node_id
-
-    with _connect(_require("STEWARD_DATABASE_URL")) as conn:
-        repo_id = store.repository_id(conn, owner, name, node_id)
-        new, seen = store.write(conn, repo_id, fetch.events(gh, owner, name))
-        store.record_sync(conn, repo_id)
+    new, seen = asyncio.run(_sync(owner, name))
     typer.echo(f"{repository}: {new} new, {seen} already recorded")
+
+
+async def _sync(owner: str, name: str) -> tuple[int, int]:
+    new = seen = 0
+    async with GitHub(
+        _require("GITHUB_TOKEN"), throttler=LocalThrottler(fetch.CONCURRENCY)
+    ) as gh:
+        repository = await gh.rest.repos.async_get(owner=owner, repo=name)
+        with _connect(_require("STEWARD_DATABASE_URL")) as conn:
+            repo_id = store.repository_id(
+                conn, owner, name, repository.parsed_data.node_id
+            )
+            async for events_ in fetch.events(gh, owner, name):
+                added, already = store.write(conn, repo_id, events_)
+                new += added
+                seen += already
+            store.record_sync(conn, repo_id)
+    return new, seen
 
 
 @app.command()

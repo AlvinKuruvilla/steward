@@ -11,9 +11,12 @@ Working notes. Deliverables and their acceptance bars live in `ROADMAP.md`.
    and normalizes it: precogly's full history is 259 pull requests and 1,889
    events, no failures. What is left between that and `steward sync`:
 
-   - **Resumability.** A sync reads every pull request every time. `since` on
-     `pulls.list`, or the `last_sync` column `repositories` already has, would
-     make a second run cheap; ROADMAP asks for resumable and interruptible.
+   - **Resumability.** A sync reads every pull request every time, which a
+     backfill of precogly does in 28 seconds. Stopping early on `updated_at` is
+     ruled out: `pulls.list` has no `since`, and 7 of 25 recorded pull requests
+     have an event after their own `updated_at` -- all cross-references, which
+     update the issue doing the referencing and not the pull request referred
+     to. Webhooks (V4) are the real answer.
    - **Recording.** `tests/data/precogly_rest_timeline.json` was recorded by
      hand. `steward sync` should record its own cassettes, which is what
      ROADMAP.md's hermetic test story rests on.

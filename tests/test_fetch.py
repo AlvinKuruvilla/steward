@@ -42,12 +42,12 @@ def _split_serving(items: list[Any], path: str) -> httpx.MockTransport:
     return httpx.MockTransport(replay)
 
 
-def test_timeline_reads_past_the_first_page(recorded: dict[str, Any]) -> None:
+async def test_timeline_reads_past_the_first_page(recorded: dict[str, Any]) -> None:
     number, items = max(recorded["timelines"].items(), key=lambda kv: len(kv[1]))
     path = f"/repos/precogly/precogly/issues/{number}/timeline"
-    gh: GitHub[Any] = GitHub("recorded", transport=_split_serving(items, path))
+    gh: GitHub[Any] = GitHub("recorded", async_transport=_split_serving(items, path))
 
-    read = list(timeline(gh, "precogly", "precogly", int(number)))
+    read = await timeline(gh, "precogly", "precogly", int(number))
 
     assert len(read) == len(items)
     assert [item.node_id for item in read if hasattr(item, "node_id")] == [
@@ -55,18 +55,19 @@ def test_timeline_reads_past_the_first_page(recorded: dict[str, Any]) -> None:
     ]
 
 
-def test_pull_requests_read_past_the_first_page(recorded: dict[str, Any]) -> None:
+async def test_pull_requests_read_past_the_first_page(recorded: dict[str, Any]) -> None:
     path = "/repos/precogly/precogly/pulls"
     gh: GitHub[Any] = GitHub(
-        "recorded", transport=_split_serving(recorded["pulls"], path)
+        "recorded",
+        async_transport=_split_serving(recorded["pulls"], path),
     )
 
-    read = list(pull_requests(gh, "precogly", "precogly"))
+    read = [pr async for pr in pull_requests(gh, "precogly", "precogly")]
 
     assert [pr.number for pr in read] == [pr["number"] for pr in recorded["pulls"]]
 
 
-def test_a_single_page_is_not_requested_twice(recorded: dict[str, Any]) -> None:
+async def test_a_single_page_is_not_requested_twice(recorded: dict[str, Any]) -> None:
     # A reader that keeps going without a `Link` header would loop on the last
     # page, which a split fixture cannot catch.
     calls = 0
@@ -76,8 +77,7 @@ def test_a_single_page_is_not_requested_twice(recorded: dict[str, Any]) -> None:
         calls += 1
         return httpx.Response(200, json=recorded["pulls"])
 
-    gh: GitHub[Any] = GitHub("recorded", transport=httpx.MockTransport(replay))
-    assert len(list(pull_requests(gh, "precogly", "precogly"))) == len(
-        recorded["pulls"]
-    )
+    gh: GitHub[Any] = GitHub("recorded", async_transport=httpx.MockTransport(replay))
+    read = [pr async for pr in pull_requests(gh, "precogly", "precogly")]
+    assert len(read) == len(recorded["pulls"])
     assert calls == 1

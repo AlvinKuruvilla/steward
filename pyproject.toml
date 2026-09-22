@@ -32,6 +32,7 @@ dev = [
     "mypy>=1.13",
     "pip-audit>=2.7",
     "pre-commit>=4",
+    "pytest-asyncio>=1.4.0",
 ]
 
 [tool.hatch.build.targets.wheel]
@@ -70,6 +71,7 @@ disallow_untyped_defs = false
 
 [tool.pytest.ini_options]
 minversion = "8.0"
+asyncio_mode = "auto"
 addopts = "-ra -q --strict-markers --strict-config"
 testpaths = ["tests"]
 
