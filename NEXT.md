@@ -1,7 +1,6 @@
 # Next steps
 
-Working notes. Deliverables and their acceptance bars live in `ROADMAP.md`;
-deferred problems live in `SESSION.md`.
+Working notes. Deliverables and their acceptance bars live in `ROADMAP.md`.
 
 ## V0
 
@@ -60,6 +59,7 @@ Typed union for `Event.payload` over `dict[str, Any]`, because the bug it
 prevents is a normalizer typo that produces a fold branch which silently never
 fires.
 
-The flat `Event` stays; one dataclass per kind was prototyped and rejected — see
-`SESSION.md` for the costs that buys. `PAYLOAD_FOR` is enforced by
-`validate_payload()`, which the normalizer calls and the replay decoder does not.
+The flat `Event` stays; one dataclass per kind was prototyped and rejected. Every
+payload-touching fold branch will narrow by hand, and a kind paired with the
+wrong shape type-checks. `PAYLOAD_FOR` is enforced by `validate_payload()`,
+which the normalizer calls and the replay decoder does not.

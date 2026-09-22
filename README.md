@@ -65,7 +65,6 @@ need no network and no token.
   model is allowed to be.
 - [`docs/design/0002-visual-language.md`](docs/design/0002-visual-language.md) —
   the interface, with token values.
-- [`SESSION.md`](SESSION.md) — known gaps and deferred problems.
 
 ## License
 
