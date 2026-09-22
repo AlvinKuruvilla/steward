@@ -23,13 +23,11 @@ const router = createBrowserRouter([
   },
 ]);
 
-// The system's preference decides the first paint; the attribute is what the
-// stylesheet reads, so a toggle can override it later without a reload.
-document.documentElement.dataset.theme = window.matchMedia(
-  "(prefers-color-scheme: dark)",
-).matches
-  ? "dark"
-  : "light";
+// Light, until there is a control to change it. Both of OpenWork's surfaces
+// are light, the Primer state colours here are their light values, and a dark
+// slate ground puts three greys within a few percent of each other.
+document.documentElement.dataset.theme = "light";
+document.documentElement.style.colorScheme = "light";
 
 const root = document.getElementById("root");
 if (!root) throw new Error("index.html has no #root");

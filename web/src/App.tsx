@@ -11,6 +11,7 @@ import { NavLink, Outlet, useParams } from "react-router";
 
 import { get, type Repository } from "@/api";
 import { AddRepository } from "@/components/add-repository";
+import { Mark } from "@/components/mark";
 
 export default function App() {
   const { owner, name } = useParams();
@@ -26,12 +27,12 @@ export default function App() {
     repositories?.[0];
 
   return (
-    <div className="min-h-screen bg-sidebar">
-      <div className="mx-auto grid min-h-screen max-w-[1180px] grid-cols-[13rem_1fr] gap-px bg-border/60 px-6">
+    <div className="min-h-screen bg-[var(--slate-3)] py-6">
+      <div className="mx-auto grid min-h-[calc(100vh-3rem)] max-w-[1120px] grid-cols-[13.5rem_1fr] overflow-hidden rounded-xl border border-border bg-background shadow-[0_1px_2px_rgb(0_0_0/0.04),0_8px_24px_rgb(15_23_42/0.06)]">
         <Sidebar repositories={repositories} selected={selected} />
 
-        <div className="flex min-w-0 flex-col bg-background">
-          <header className="flex h-14 shrink-0 items-center justify-between gap-6 border-b border-border/60 px-6">
+        <div className="flex min-w-0 flex-col border-l border-border bg-background">
+          <header className="flex h-13 shrink-0 items-center justify-between gap-6 border-b border-border px-6 py-3">
             <div className="flex min-w-0 items-baseline gap-3">
               <h1 className="truncate font-mono text-[13px] text-foreground">
                 {selected ? `${selected.owner}/${selected.name}` : "Steward"}
@@ -58,8 +59,15 @@ function Sidebar({
   selected: Repository | undefined;
 }) {
   return (
-    <aside className="flex flex-col bg-sidebar px-3 py-5">
-      <span className="px-2 pb-3 text-[11px] font-medium tracking-[0.08em] text-muted-foreground uppercase">
+    <aside className="flex flex-col gap-1 bg-sidebar px-3 py-4">
+      <div className="flex items-center gap-2 px-2 pt-1 pb-4">
+        <Mark />
+        <span className="text-[13px] font-semibold tracking-[-0.01em] text-foreground">
+          Steward
+        </span>
+      </div>
+
+      <span className="px-2 pb-1.5 text-[11px] font-medium tracking-[0.08em] text-muted-foreground uppercase">
         Repositories
       </span>
 
@@ -73,7 +81,7 @@ function Sidebar({
                 "group flex h-8 items-center gap-2 rounded-md px-2",
                 "text-[13px] transition-colors duration-100",
                 repository === selected
-                  ? "bg-sidebar-accent text-sidebar-accent-foreground"
+                  ? "bg-background font-medium text-foreground shadow-[0_1px_2px_rgb(0_0_0/0.06)] ring-1 ring-border"
                   : "text-muted-foreground hover:bg-muted",
               ].join(" ")
             }
@@ -95,11 +103,6 @@ function Sidebar({
         </p>
       ) : null}
 
-      <footer className="mt-auto px-2 pt-6 text-[11px] leading-relaxed text-muted-foreground">
-        <span className="font-mono">mono</span> is derived from an event.
-        <br />
-        Prose is not.
-      </footer>
     </aside>
   );
 }

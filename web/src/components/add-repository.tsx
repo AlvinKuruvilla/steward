@@ -42,7 +42,6 @@ export function AddRepository() {
       />
       <Button
         type="submit"
-        variant="outline"
         size="sm"
         disabled={value.trim() === "" || add.isPending}
       >

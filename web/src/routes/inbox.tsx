@@ -1,14 +1,17 @@
 import { useQuery } from "@tanstack/react-query";
+import { MessageSquare } from "lucide-react";
+import { useState } from "react";
 import { Link, useOutletContext } from "react-router";
 
 import {
   daysSince,
   get,
-  type BlockedOn,
   type Repository,
   type Standing,
 } from "@/api";
+import { Avatar } from "@/components/avatar";
 import { StateMark } from "@/components/state-mark";
+import { Badge } from "@/components/ui/badge";
 import {
   Empty,
   EmptyDescription,
@@ -16,33 +19,39 @@ import {
   EmptyTitle,
 } from "@/components/ui/empty";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Badge } from "@/components/ui/badge";
-import { Table, TableBody, TableCell, TableRow } from "@/components/ui/table";
 
 /**
- * The queue, cut by who it is waiting on rather than by state. A maintainer
- * opens this to find their own work, so their own work is the first group and
- * the only one that gets a count in the corner of the eye.
+ * The queue, cut by who holds each pull request.
+ *
+ * Bots are their own group and collapsed by default. Eleven dependabot bumps
+ * that differ only in a package name tell a maintainer one thing, not eleven,
+ * and they were burying the three rows that needed a person.
  */
 const groups: {
   title: string;
   note: string;
-  holds: (blocked: BlockedOn) => boolean;
+  holds: (standing: Standing) => boolean;
 }[] = [
   {
     title: "Needs you",
     note: "waiting on a review or a merge",
-    holds: (b) => b === "REVIEWER" || b === "MERGER",
+    holds: (s) =>
+      !s.author_is_bot && (s.blocked_on === "REVIEWER" || s.blocked_on === "MERGER"),
   },
   {
     title: "With the author",
     note: "changes were asked for, or it is a draft",
-    holds: (b) => b === "AUTHOR",
+    holds: (s) => !s.author_is_bot && s.blocked_on === "AUTHOR",
   },
   {
     title: "No answer",
-    note: "no review was ever requested, and no rule says who should have it",
-    holds: (b) => b === "UNKNOWN",
+    note: "no review requested, and no rule in steward.toml says who should have it",
+    holds: (s) => !s.author_is_bot && s.blocked_on === "UNKNOWN",
+  },
+  {
+    title: "Bots",
+    note: "opened by a machine, waiting on a policy rather than a person",
+    holds: (s) => s.author_is_bot,
   },
 ];
 
@@ -64,103 +73,166 @@ export function Component() {
   }
   if (isPending) {
     return (
-      <div className="flex flex-col gap-2">
-        {[0, 1, 2, 3, 4].map((row) => (
-          <Skeleton key={row} className="h-10 w-full" />
+      <div className="flex flex-col gap-px">
+        {[0, 1, 2, 3, 4, 5].map((row) => (
+          <Skeleton key={row} className="h-11 w-full rounded-none" />
         ))}
       </div>
     );
   }
 
-  return (
-    <div className="flex flex-col gap-9">
-      {groups.map((group) => {
-        const rows = data.filter((row) => group.holds(row.blocked_on));
-        if (rows.length === 0) return null;
-        return (
-          <section key={group.title}>
-            <div className="flex items-baseline gap-3 pb-1.5">
-              <h2 className="text-[13px] font-medium text-foreground">
-                {group.title}
-              </h2>
-              <span className="font-mono text-[11px] tabular-nums text-muted-foreground">
-                {rows.length}
-              </span>
-              <span className="truncate text-xs text-muted-foreground">
-                {group.note}
-              </span>
-            </div>
+  const needing = data.filter((row) => groups[0].holds(row)).length;
 
-            <Table>
-              <TableBody>
-                {rows.map((standing) => (
-                  <Row
-                    key={standing.number}
-                    repository={repository}
-                    standing={standing}
-                  />
-                ))}
-              </TableBody>
-            </Table>
-          </section>
-        );
-      })}
-    </div>
+  return (
+    <>
+      <div className="flex items-baseline justify-between gap-4 pb-5">
+        <div>
+          <h2 className="text-[22px] leading-tight font-semibold tracking-[-0.02em] text-foreground">
+            {needing === 0
+              ? "Nothing is waiting on you"
+              : `${needing} waiting on you`}
+          </h2>
+          <p className="pt-1.5 text-[13px] text-muted-foreground">
+            {data.length} open pull requests, read from{" "}
+            <span className="font-mono">{repository.owner}/{repository.name}</span>.
+          </p>
+        </div>
+      </div>
+
+      <div className="flex flex-col gap-7">
+        {groups.map((group) => {
+          const rows = data.filter(group.holds);
+          if (rows.length === 0) return null;
+          return (
+            <Group
+              key={group.title}
+              title={group.title}
+              note={group.note}
+              rows={rows}
+              repository={repository}
+              collapsed={group.title === "Bots"}
+            />
+          );
+        })}
+      </div>
+    </>
+  );
+}
+
+function Group({
+  title,
+  note,
+  rows,
+  repository,
+  collapsed,
+}: {
+  title: string;
+  note: string;
+  rows: Standing[];
+  repository: Repository;
+  collapsed: boolean;
+}) {
+  const [open, setOpen] = useState(!collapsed);
+
+  return (
+    <section>
+      <button
+        type="button"
+        onClick={() => setOpen((was) => !was)}
+        className="group flex w-full items-baseline gap-2 pb-1.5 text-left"
+      >
+        <span className="text-[11px] font-medium tracking-[0.08em] text-foreground uppercase">
+          {title}
+        </span>
+        <span className="font-mono text-[11px] tabular-nums text-muted-foreground">
+          {rows.length}
+        </span>
+        <span className="truncate text-xs text-muted-foreground">{note}</span>
+        <span className="ml-auto shrink-0 text-xs text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100">
+          {open ? "hide" : "show"}
+        </span>
+      </button>
+
+      {open ? (
+        <div className="overflow-hidden rounded-lg border border-border">
+          {rows.map((standing, index) => (
+            <Row
+              key={standing.number}
+              repository={repository}
+              standing={standing}
+              first={index === 0}
+            />
+          ))}
+        </div>
+      ) : null}
+    </section>
   );
 }
 
 function Row({
   repository,
   standing,
+  first,
 }: {
   repository: Repository;
   standing: Standing;
+  first: boolean;
 }) {
-  const to = `/${repository.owner}/${repository.name}/pulls/${standing.number}`;
   return (
-    <TableRow className="group relative">
-      {/* Two lines, as GitHub does it: the title is the row, everything else
-          is metadata under it. A number and an author alone cannot be told
-          apart at a glance. */}
-      <TableCell className="max-w-0 py-2 align-top">
-        <Link
-          to={to}
-          className="block truncate text-[13px] font-medium text-foreground after:absolute after:inset-0 group-hover:underline"
-        >
+    <Link
+      to={`/${repository.owner}/${repository.name}/pulls/${standing.number}`}
+      className={[
+        "grid grid-cols-[minmax(0,1fr)_10rem_2.75rem_2.75rem] items-center gap-4 px-3.5 py-2.5",
+        "transition-colors hover:bg-muted",
+        first ? "" : "border-t border-border",
+      ].join(" ")}
+    >
+      <span className="flex min-w-0 items-center gap-2.5">
+        <Avatar login={standing.author} size={22} />
+        <span className="min-w-0">
+        <span className="block truncate text-sm text-foreground">
           {standing.title ?? `#${standing.number}`}
-        </Link>
-        <div className="flex min-w-0 items-center gap-1.5 pt-0.5 text-xs text-muted-foreground">
+        </span>
+        <span className="flex min-w-0 items-center gap-1.5 pt-0.5 text-xs text-muted-foreground">
           <span className="font-mono tabular-nums">#{standing.number}</span>
-          <span>·</span>
           <span className="truncate">
             {standing.author ?? "author since deleted"}
           </span>
-          {standing.author_is_bot ? (
-            <Badge variant="secondary" className="h-4 px-1 text-[10px]">
-              bot
-            </Badge>
-          ) : null}
           {standing.labels.slice(0, 2).map((label) => (
-            <Badge key={label} variant="outline" className="h-4 px-1 text-[10px]">
+            <Badge
+              key={label}
+              variant="outline"
+              className="h-4 shrink-0 px-1 text-[10px] font-normal"
+            >
               {label}
             </Badge>
           ))}
-        </div>
-      </TableCell>
-      <TableCell className="w-px py-2 align-top whitespace-nowrap">
-        <StateMark
-          state={standing.state}
-          blockedOn={standing.blocked_on}
-          derivation={standing.derivation}
-        />
-      </TableCell>
-      <TableCell className="w-10 py-2 text-right align-top font-mono text-xs tabular-nums text-muted-foreground">
-        {standing.comments > 0 ? standing.comments : ""}
-      </TableCell>
-      <TableCell className="w-12 py-2 text-right align-top font-mono text-xs tabular-nums text-muted-foreground">
+        </span>
+        </span>
+      </span>
+
+      <StateMark
+        state={standing.state}
+        blockedOn={standing.blocked_on}
+        derivation={standing.derivation}
+      />
+
+      <span className="flex items-center justify-end gap-1 font-mono text-xs tabular-nums text-muted-foreground">
+        {standing.comments > 0 ? (
+          <>
+            <MessageSquare className="size-3" aria-hidden />
+            {standing.comments}
+          </>
+        ) : null}
+      </span>
+
+      <span
+        className="text-right font-mono text-xs tabular-nums text-muted-foreground"
+        title={`unchanged for ${daysSince(standing.since)} days`}
+      >
         {daysSince(standing.since)}d
-      </TableCell>
-    </TableRow>
+      </span>
+    </Link>
   );
 }
 
