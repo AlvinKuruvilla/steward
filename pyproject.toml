@@ -12,6 +12,7 @@ authors = [
     { name = "Alvin Kuruvilla", email = "alvineasokuruvilla@gmail.com" },
 ]
 dependencies = [
+    "githubkit>=0.16.1",
     "httpx>=0.28.1",
     "psycopg[binary,pool]>=3.3.6",
     "pydantic>=2.13.5",

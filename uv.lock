@@ -38,6 +38,18 @@ wheels = [
 ]
 
 [[package]]
+name = "anysqlite"
+version = "0.0.5"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "anyio" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/0f/4b/cd5d66b9f87e773bc71344a368b9472987e33514e6627e28342b9c3e7c43/anysqlite-0.0.5.tar.gz", hash = "sha256:9dfcf87baf6b93426ad1d9118088c41dbf24ef01b445eea4a5d486bac2755cce", size = 3432, upload-time = "2023-10-02T13:49:25.135Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/0b/31/349eae2bc9d9331dd8951684cf94528d91efaa71129dc30822ac111dfc66/anysqlite-0.0.5-py3-none-any.whl", hash = "sha256:cb345dc4f76f6b37f768d7a0b3e9cf5c700dfcb7a6356af8ab46a11f666edbe7", size = 3907, upload-time = "2023-10-02T13:49:26.943Z" },
+]
+
+[[package]]
 name = "ast-serialize"
 version = "0.11.2"
 source = { registry = "https://pypi.org/simple" }
@@ -397,6 +409,48 @@ wheels = [
 ]
 
 [[package]]
+name = "githubkit"
+version = "0.16.1"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "anyio" },
+    { name = "githubkit-schemas" },
+    { name = "hishel", extra = ["async", "httpx"] },
+    { name = "httpx" },
+    { name = "pydantic" },
+    { name = "typing-extensions" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/45/a8/ebfcbddccb3e813837600f4cdb79fc462fd284c1db03abc1ad31072d0757/githubkit-0.16.1.tar.gz", hash = "sha256:f56ea4e796f169773d114c7f39089790f99443f1d05871d594d6bdca7928945c", size = 36999, upload-time = "2026-08-14T07:46:05.363Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/b0/eb/ee6424e6d257433a8a62e86016cdbce6efdbd26d7db5735c5c099da85e44/githubkit-0.16.1-py3-none-any.whl", hash = "sha256:a791e0eb57ec80824a711321376c5816aa1cd204e6982e4ad5ddce6c87490863", size = 42935, upload-time = "2026-08-14T07:46:04.167Z" },
+]
+
+[[package]]
+name = "githubkit-schemas"
+version = "26.9.21"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "githubkit" },
+    { name = "githubkit-schemas-2026-03-10" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/1e/57/17a20caea8a36f7ac6b9f4ef640436597f495dbd88ae492ce821c2c5d36d/githubkit_schemas-26.9.21.tar.gz", hash = "sha256:a3d789a4f7d6ed372a7209b15aefd72a00f4cca75f8348dfd7bdc3ffe89bee9a", size = 124977, upload-time = "2026-09-21T09:02:42.482Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/1d/e8/8b9e2c87fb3ce4f3b52c2f4e7fb9304a9e3de5931eccd6e8ebf25330ec5a/githubkit_schemas-26.9.21-py3-none-any.whl", hash = "sha256:9ea2cb57f190d76442245cd5006885d495297bb2e430628d15795de1f2dd1d0a", size = 127923, upload-time = "2026-09-21T09:02:33.662Z" },
+]
+
+[[package]]
+name = "githubkit-schemas-2026-03-10"
+version = "26.9.21"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "githubkit-schemas" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/f8/ae/731356456e6a4b472ae87ef83e48a1842bc6d19a2ed5b39e8483c60ba0f3/githubkit_schemas_2026_03_10-26.9.21.tar.gz", hash = "sha256:81f9752629adec049d12b1d30498b453e2227fa40b79d2be40e38461422ff850", size = 1390351, upload-time = "2026-09-21T09:02:44.468Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/39/bd/d9bfca93c5a51ef75416a6e3482aa15e7d78473b1fc444fd3b97d12a5063/githubkit_schemas_2026_03_10-26.9.21-py3-none-any.whl", hash = "sha256:60a7c9d7cab06a8bf58b8bc8445333939a9ae3b54dd85e6f083674dd46ecc551", size = 3497962, upload-time = "2026-09-21T09:02:36.973Z" },
+]
+
+[[package]]
 name = "graphql-core"
 version = "3.2.12"
 source = { registry = "https://pypi.org/simple" }
@@ -412,6 +466,30 @@ source = { registry = "https://pypi.org/simple" }
 sdist = { url = "https://files.pythonhosted.org/packages/01/ee/02a2c011bdab74c6fb3c75474d40b3052059d95df7e73351460c8588d963/h11-0.16.0.tar.gz", hash = "sha256:4e35b956cf45792e4caa5885e69fba00bdbc6ffafbfa020300e549b208ee5ff1", size = 101250, upload-time = "2025-04-24T03:35:25.427Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/04/4b/29cac41a4d98d144bf5f6d33995617b185d14b22401f75ca86f384e87ff1/h11-0.16.0-py3-none-any.whl", hash = "sha256:63cf8bbe7522de3bf65932fda1d9c2772064ffb3dae62d55932da54b31cb6c86", size = 37515, upload-time = "2025-04-24T03:35:24.344Z" },
+]
+
+[[package]]
+name = "hishel"
+version = "1.4.0"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "msgpack" },
+    { name = "typing-extensions" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/c6/ff/efba29288e1d304359491fa3aab83174c3ef24a63819e6acad6873d8c0a9/hishel-1.4.0.tar.gz", hash = "sha256:e406b052c658ce28629fc31423b9914b637d47d7c923f5fe9e288ec47e4823d1", size = 813499, upload-time = "2026-09-16T15:38:54.085Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/da/c5/2cf7b80da9833de6ae5099111b64cf541830ccb4ef26605ae86f23ed5604/hishel-1.4.0-py3-none-any.whl", hash = "sha256:38cb62d7d38fb437dc086f789c26d0cab41310d12497ec3f56dcead4b08571f0", size = 80795, upload-time = "2026-09-16T15:38:52.545Z" },
+]
+
+[package.optional-dependencies]
+async = [
+    { name = "anyio" },
+    { name = "anysqlite" },
+]
+httpx = [
+    { name = "anyio" },
+    { name = "anysqlite" },
+    { name = "httpx" },
 ]
 
 [[package]]
@@ -1225,6 +1303,7 @@ name = "steward"
 version = "0.1.0"
 source = { editable = "." }
 dependencies = [
+    { name = "githubkit" },
     { name = "httpx" },
     { name = "psycopg", extra = ["binary", "pool"] },
     { name = "pydantic" },
@@ -1246,6 +1325,7 @@ dev = [
 
 [package.metadata]
 requires-dist = [
+    { name = "githubkit", specifier = ">=0.16.1" },
     { name = "httpx", specifier = ">=0.28.1" },
     { name = "psycopg", extras = ["binary", "pool"], specifier = ">=3.3.6" },
     { name = "pydantic", specifier = ">=2.13.5" },

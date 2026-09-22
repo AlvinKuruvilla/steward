@@ -1,96 +1,117 @@
-"""The normalizer, against a recorded page rather than invented events.
+"""The normalizer, against a recorded response rather than invented events.
 
-`tests/data/precogly_pull_request_page.json` is one real response to the
-generated `PullRequestPage` operation, kept verbatim. Hand-written timeline JSON
-would only ever contain what someone already believed GitHub sends; this
-contains what it sent. It will be replaced by the recorded cassettes ROADMAP.md
-describes once `steward sync` exists to record them.
+`tests/data/precogly_rest_timeline.json` holds one real `pulls.list` response
+and the timeline of each pull request in it, kept verbatim. Hand-written
+timeline JSON would only ever contain what someone already believed GitHub
+sends; this contains what it sent.
+
+It is replayed through `httpx.MockTransport`, so githubkit parses it exactly as
+it would parse the live API and the test covers the real path from bytes to
+`Event`. That is the recorded-cassette shape `ROADMAP.md` describes, one
+endpoint short of `steward sync` being able to record its own.
 """
 
 from __future__ import annotations
 
 import json
+import re
 from collections import Counter
 from pathlib import Path
+from typing import Any
 
+import httpx
 import pytest
+from githubkit import GitHub
 
-from steward.github_api.pull_request_page import (
-    PullRequestPage,
-    PullRequestPageRepositoryPullRequestsNodes,
-)
 from steward.model import KIND_FOR_TYPENAME, EventKind, validate_payload
-from steward.normalize import events_for_pull_request
+from steward.normalize import IGNORED, events_for_pull_request
 
-PAGE = Path(__file__).parent / "data" / "precogly_pull_request_page.json"
+FIXTURE = Path(__file__).parent / "data" / "precogly_rest_timeline.json"
+TIMELINE = re.compile(r"^/repos/precogly/precogly/issues/(\d+)/timeline$")
 
 
 @pytest.fixture(scope="module")
-def pull_requests() -> list[PullRequestPageRepositoryPullRequestsNodes]:
-    page = PullRequestPage.model_validate(json.loads(PAGE.read_text())["data"])
-    assert page.repository is not None
-    return [pr for pr in page.repository.pull_requests.nodes or [] if pr is not None]
+def github() -> GitHub[Any]:
+    recorded = json.loads(FIXTURE.read_text())
+
+    def replay(request: httpx.Request) -> httpx.Response:
+        if request.url.path == "/repos/precogly/precogly/pulls":
+            return httpx.Response(200, json=recorded["pulls"])
+        match = TIMELINE.match(request.url.path)
+        if match:
+            return httpx.Response(200, json=recorded["timelines"][match.group(1)])
+        raise AssertionError(f"no recording for {request.url.path}")
+
+    return GitHub("recorded", transport=httpx.MockTransport(replay))
 
 
-def test_every_pull_request_normalizes(
-    pull_requests: list[PullRequestPageRepositoryPullRequestsNodes],
+def _pulls_and_timelines(gh: GitHub[Any]) -> list[tuple[Any, list[Any]]]:
+    pulls = gh.rest.pulls.list(
+        owner="precogly", repo="precogly", state="all", per_page=25
+    ).parsed_data
+    return [
+        (
+            pr,
+            gh.rest.issues.list_events_for_timeline(
+                owner="precogly", repo="precogly", issue_number=pr.number, per_page=100
+            ).parsed_data,
+        )
+        for pr in pulls
+    ]
+
+
+def test_every_item_becomes_an_event_or_is_named_as_ignored(
+    github: GitHub[Any],
 ) -> None:
-    assert len(pull_requests) == 25
-    for pr in pull_requests:
-        events = events_for_pull_request(pr)
-        # One per timeline item, plus the synthesized OPENED.
-        assert len(events) == len(pr.timeline_items.nodes or []) + 1
+    for pr, timeline in _pulls_and_timelines(github):
+        kept = [
+            item
+            for item in timeline
+            if getattr(item, "event", type(item).__name__) not in IGNORED
+        ]
+        # Plus OPENED, which GitHub emits no timeline item for.
+        assert len(events_for_pull_request(pr, timeline)) == len(kept) + 1
 
 
-def test_payloads_match_their_kinds(
-    pull_requests: list[PullRequestPageRepositoryPullRequestsNodes],
-) -> None:
+def test_payloads_match_their_kinds(github: GitHub[Any]) -> None:
     # The normalizer validates as it builds; this checks what came out, so a
     # branch that skipped the call cannot pass unnoticed.
-    for pr in pull_requests:
-        for event in events_for_pull_request(pr):
+    for pr, timeline in _pulls_and_timelines(github):
+        for event in events_for_pull_request(pr, timeline):
             validate_payload(event.kind, event.payload)
 
 
-def test_events_are_ordered_by_time(
-    pull_requests: list[PullRequestPageRepositoryPullRequestsNodes],
-) -> None:
-    for pr in pull_requests:
-        events = events_for_pull_request(pr)
-        assert [e.occurred_at for e in events] == sorted(e.occurred_at for e in events)
+def test_events_are_ordered_by_time(github: GitHub[Any]) -> None:
+    for pr, timeline in _pulls_and_timelines(github):
+        times = [e.occurred_at for e in events_for_pull_request(pr, timeline)]
+        assert times == sorted(times)
 
 
-def test_opened_leads_everything_except_earlier_commits(
-    pull_requests: list[PullRequestPageRepositoryPullRequestsNodes],
-) -> None:
-    # A rebased commit keeps its original committedDate, so it can sit days
-    # before the pull request. The log keeps that time; anything else ahead of
-    # OPENED would be the normalizer inventing history.
-    for pr in pull_requests:
-        events = events_for_pull_request(pr)
+def test_opened_leads_everything_except_earlier_commits(github: GitHub[Any]) -> None:
+    # A rebased commit keeps its original date, so it can sit before the pull
+    # request. Anything else ahead of OPENED would be invented history.
+    for pr, timeline in _pulls_and_timelines(github):
+        events = events_for_pull_request(pr, timeline)
         opened = next(i for i, e in enumerate(events) if e.kind is EventKind.OPENED)
         assert all(e.kind is EventKind.COMMIT for e in events[:opened])
 
 
-def test_source_ids_are_unique_within_a_pull_request(
-    pull_requests: list[PullRequestPageRepositoryPullRequestsNodes],
-) -> None:
+def test_source_ids_are_unique_within_a_pull_request(github: GitHub[Any]) -> None:
     # source_id is what makes a re-sync idempotent. A collision would make the
-    # second sync a no-op for one of the two events rather than for neither.
-    for pr in pull_requests:
-        ids = [event.source_id for event in events_for_pull_request(pr)]
+    # second sync a no-op for one of two events rather than for neither. Cross
+    # references matter most here: REST gives them no id, so theirs is built
+    # from the event's own fields.
+    for pr, timeline in _pulls_and_timelines(github):
+        ids = [e.source_id for e in events_for_pull_request(pr, timeline)]
         assert len(set(ids)) == len(ids)
 
 
-def test_recorded_page_exercises_most_of_the_model(
-    pull_requests: list[PullRequestPageRepositoryPullRequestsNodes],
-) -> None:
+def test_recording_exercises_most_of_the_model(github: GitHub[Any]) -> None:
     seen = Counter(
-        event.kind for pr in pull_requests for event in events_for_pull_request(pr)
+        event.kind
+        for pr, timeline in _pulls_and_timelines(github)
+        for event in events_for_pull_request(pr, timeline)
     )
-    # Not every kind: this page has no dismissal, assignment or draft
-    # conversion. Naming what it misses is the point -- the count is coverage
-    # of the normalizer, and the gap is what the cassettes will have to add.
     assert set(seen) >= {
         EventKind.OPENED,
         EventKind.COMMIT,
@@ -101,6 +122,8 @@ def test_recorded_page_exercises_most_of_the_model(
         EventKind.CROSS_REFERENCED,
         EventKind.COMMENT,
     }
+    # Naming the gap is the point: these kinds have no coverage here, and the
+    # corpus cassettes are what will have to supply them.
     missing = set(KIND_FOR_TYPENAME.values()) - set(seen)
     assert missing == {
         EventKind.ASSIGNED,
