@@ -19,5 +19,15 @@ jobs:
       - run: uv run ruff format --check .
       - run: uv run mypy src
 
+      # The database comes from compose rather than a service container: the
+      # roles in db/init are what the migration tests are checking, and a
+      # service container cannot run them.
+      - run: docker compose up -d --wait db
+        env:
+          GITHUB_TOKEN: unused-by-the-database
+
       - run: uv run pytest
+        env:
+          STEWARD_ADMIN_DATABASE_URL: postgresql://steward_migrator:steward-dev@127.0.0.1:5432/steward?options=-c%20role%3Dsteward_owner
+
       - run: uv run pip-audit

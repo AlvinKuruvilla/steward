@@ -11,10 +11,16 @@
 
 \set engine_password `echo "${STEWARD_ENGINE_PASSWORD:-steward-dev}"`
 \set enrich_password `echo "${STEWARD_ENRICH_PASSWORD:-steward-dev}"`
+\set migrator_password `echo "${STEWARD_MIGRATOR_PASSWORD:-steward-dev}"`
 
--- Owns every object and runs migrations. Nothing connects as this role to serve
--- a request.
+-- Owns every object. NOLOGIN: nothing authenticates as it.
 CREATE ROLE steward_owner NOLOGIN;
+
+-- Runs migrations. Membership carries the SET option, so it can SET ROLE to
+-- steward_owner without being a superuser; the admin connection string does
+-- that on connect, with `options=-c role=steward_owner`.
+CREATE ROLE steward_migrator LOGIN PASSWORD :'migrator_password';
+GRANT steward_owner TO steward_migrator;
 
 -- The application. Reads events, writes derived state.
 CREATE ROLE steward_engine LOGIN PASSWORD :'engine_password';

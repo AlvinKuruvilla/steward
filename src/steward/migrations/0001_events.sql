@@ -27,11 +27,11 @@ CREATE TABLE events (
     -- Nullable because GitHub returns a null author for deleted accounts, and a
     -- deleted account is a fact about the history rather than a broken row.
     actor       TEXT,
-    -- GraphQL's __typename. Bot-ness is a judgement on top of it: dependabot is
-    -- __typename Bot, k8s-triage-robot is a User, and steward.toml's allowlist
-    -- decides. Rows here are immutable, so the judgement must not be one of them.
-    -- Unconstrained on purpose: a CHECK or an enum would fail the sync the day
-    -- GitHub adds a __typename.
+    -- REST's `type` on a user, verbatim. Bot-ness is a judgement on top of it:
+    -- dependabot is type Bot, k8s-triage-robot is a User, and steward.toml's
+    -- allowlist decides. Rows here are immutable, so the judgement must not be
+    -- one of them. Unconstrained on purpose: a CHECK would fail the sync the
+    -- day GitHub adds a type.
     actor_type  TEXT,
 
     -- Whatever the event kind carries beyond the columns above: a review's
@@ -72,7 +72,8 @@ CREATE TABLE subjects (
     node_id        TEXT        NOT NULL,
     title          TEXT        NOT NULL,
     author         TEXT,
-    author_is_bot  BOOLEAN     NOT NULL DEFAULT false,
+    -- As `events.actor_type`: what GitHub said, not what we concluded from it.
+    author_type    TEXT,
     -- GitHub's association at sync time, not at the time the PR was opened. A
     -- contributor promoted to MEMBER reads as MEMBER across their whole history,
     -- which understates the external cohort in any repo that promotes people.

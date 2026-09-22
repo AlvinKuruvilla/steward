@@ -68,7 +68,7 @@ class SubjectType(StrEnum):
     "What an event happened to"
 
     # NOTE: These values are ours, not GitHub's, and must match the CHECK
-    # constraint in db/migrations/0001_events.sql. A mismatch fails at INSERT,
+    # constraint in migrations/0001_events.sql. A mismatch fails at INSERT,
     # not at type-check.
     PULL_REQUEST = "pull_request"
     ISSUE = "issue"

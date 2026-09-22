@@ -43,6 +43,10 @@ services:
         condition: service_healthy
     environment:
       STEWARD_DATABASE_URL: postgresql://steward_engine:${STEWARD_ENGINE_PASSWORD:-steward-dev}@db:5432/steward
+      # Migrations only. `role=steward_owner` is what makes the tables they
+      # create owned by the role whose default privileges grant the engine
+      # access; without it the engine can read nothing it just migrated.
+      STEWARD_ADMIN_DATABASE_URL: postgresql://steward_migrator:${STEWARD_MIGRATOR_PASSWORD:-steward-dev}@db:5432/steward?options=-c%20role%3Dsteward_owner
       GITHUB_TOKEN: ${GITHUB_TOKEN:?set GITHUB_TOKEN in .env or the environment}
     # V0 has no long-running process. The container exists so `docker compose run
     # steward sync <repo>` works with no Python on the host; V1's web UI turns

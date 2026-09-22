@@ -7,21 +7,7 @@ Working notes. Deliverables and their acceptance bars live in `ROADMAP.md`.
 `model.py` is done: `Event`, `validate_payload`, and the `payload_to_dict` /
 `payload_from_dict` pair with a hypothesis property test over every shape.
 
-1. **Migration runner.** Walked through but not written. Settled: numbered SQL
-   with a `schema_migrations` ledger, SHA-256 checksums to catch an edited
-   migration, one transaction per file, `pg_advisory_lock` around the run,
-   forward-only. Two things still open:
-
-   - **Where migrations live.** They are in `db/migrations/`, which breaks the
-     moment Steward is installed as a wheel. Moving them to
-     `src/steward/migrations/` needs a hatchling force-include so `.sql` ships.
-   - **Which role runs them.** Must be `steward_owner`, or
-     `ALTER DEFAULT PRIVILEGES` never fires and `steward_engine` silently gets no
-     grants. `steward_owner` is NOLOGIN, so the runner connects as superuser and
-     issues `SET ROLE`. That is a second connection string, which `compose.yaml`
-     does not yet provide.
-
-2. **Sync.** `fetch.events()` reads a whole repository through paged requests
+1. **Sync.** `fetch.events()` reads a whole repository through paged requests
    and normalizes it: precogly's full history is 259 pull requests and 1,889
    events, no failures. What is left between that and `steward sync`:
 
@@ -35,12 +21,11 @@ Working notes. Deliverables and their acceptance bars live in `ROADMAP.md`.
      ROADMAP.md's hermetic test story rests on.
    - **Writing rows,** which needs the migration runner above.
 
-3. **`steward sync` / `steward events`,** then V0's acceptance: sync twice and
+2. **`steward sync` / `steward events`,** then V0's acceptance: sync twice and
    add zero rows; truncate everything below the log, replay, diff identical.
 
 ## Decisions still open
 
-- Migration file location (1 above).
 - Whether Steward writes to GitHub at all. Acting on its own is ruled out;
   human-initiated writes are not. It decides whether the token, `steward.toml`
   and the compose file ever carry a write scope, so it is cheaper to settle
