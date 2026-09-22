@@ -158,9 +158,11 @@ regress below the audit's measurement. Every `UNKNOWN` is enumerated in the test
 output with its PR number; a coverage number with no list of what it excluded is
 not evidence.
 
-Plus: Precogly #551 resolves to `CHANGES_REQUESTED`/author, #491 to
-`RE_REVIEW_WAIT`/reviewer, #382's history never enters `CHANGES_REQUESTED`, and
-#322 shows a draft interval from Aug 15 to Aug 29.
+Plus, against the recordings rather than against GitHub now: #382's history
+never enters `CHANGES_REQUESTED`, and #322 shows a draft interval from Aug 15 to
+Aug 29. The first draft of this bar also named #551 as `CHANGES_REQUESTED` and
+#491 as `RE_REVIEW_WAIT`; both were true when the audit ran and #551 has since
+moved on, which is what pinning a bar to a live pull request does.
 
 ---
 
