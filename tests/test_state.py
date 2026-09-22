@@ -26,12 +26,23 @@ from steward.model import (
     ActorType,
     Event,
     EventKind,
+    LabelPayload,
     PullRequestReviewState,
+    RenamePayload,
     ReviewPayload,
     SubjectType,
+    TitlePayload,
 )
 from steward.normalize import events_for_pull_request
-from steward.state import BlockedOn, Derivation, Interval, WorkflowState, current, fold
+from steward.state import (
+    BlockedOn,
+    Derivation,
+    Interval,
+    WorkflowState,
+    current,
+    fold,
+    summarise,
+)
 
 FIXTURE = Path(__file__).parent / "data" / "precogly_rest_timeline.json"
 TIMELINE = re.compile(r"^/repos/precogly/precogly/issues/(\d+)/timeline$")
@@ -161,3 +172,40 @@ def test_every_interval_carries_its_derivation(
         for interval in fold(events):
             assert isinstance(interval, Interval)
             assert interval.derivation in set(Derivation)
+
+
+def test_the_title_folds_from_the_log(by_number: dict[int, list[Event]]) -> None:
+    # Not a snapshot: the opening title is on OPENED, every change after is a
+    # rename event, and the current title is what the fold arrives at.
+    for number, events in by_number.items():
+        about = summarise(events)
+        assert about.title, f"#{number} has no title"
+
+
+def test_a_rename_replaces_the_opening_title() -> None:
+    events = [
+        _event(EventKind.OPENED, 0, TitlePayload("first")),
+        _event(EventKind.RENAMED, 1, RenamePayload(before="first", after="second")),
+    ]
+    assert summarise(events).title == "second"
+
+
+def test_labels_fold_to_what_is_currently_on_it() -> None:
+    events = [
+        _event(EventKind.OPENED, 0, TitlePayload("a pull request")),
+        _event(EventKind.LABELED, 1, LabelPayload("bug")),
+        _event(EventKind.LABELED, 2, LabelPayload("urgent")),
+        _event(EventKind.UNLABELED, 3, LabelPayload("bug")),
+    ]
+    assert summarise(events).labels == ("urgent",)
+
+
+def test_the_recording_carries_a_rename(by_number: dict[int, list[Event]]) -> None:
+    renames = [
+        event
+        for events in by_number.values()
+        for event in events
+        if event.kind is EventKind.RENAMED
+    ]
+    assert renames, "the recording no longer exercises the rename path"
+    assert all(isinstance(event.payload, RenamePayload) for event in renames)

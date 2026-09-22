@@ -16,6 +16,7 @@ import {
   EmptyTitle,
 } from "@/components/ui/empty";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableRow } from "@/components/ui/table";
 
 /**
@@ -117,23 +118,46 @@ function Row({
 }) {
   const to = `/${repository.owner}/${repository.name}/pulls/${standing.number}`;
   return (
-    <TableRow className="group">
-      <TableCell className="w-[4.5rem] font-mono text-xs tabular-nums text-muted-foreground">
-        <Link to={to} className="block after:absolute after:inset-0">
-          #{standing.number}
+    <TableRow className="group relative">
+      {/* Two lines, as GitHub does it: the title is the row, everything else
+          is metadata under it. A number and an author alone cannot be told
+          apart at a glance. */}
+      <TableCell className="max-w-0 py-2 align-top">
+        <Link
+          to={to}
+          className="block truncate text-[13px] font-medium text-foreground after:absolute after:inset-0 group-hover:underline"
+        >
+          {standing.title ?? `#${standing.number}`}
         </Link>
+        <div className="flex min-w-0 items-center gap-1.5 pt-0.5 text-xs text-muted-foreground">
+          <span className="font-mono tabular-nums">#{standing.number}</span>
+          <span>·</span>
+          <span className="truncate">
+            {standing.author ?? "author since deleted"}
+          </span>
+          {standing.author_is_bot ? (
+            <Badge variant="secondary" className="h-4 px-1 text-[10px]">
+              bot
+            </Badge>
+          ) : null}
+          {standing.labels.slice(0, 2).map((label) => (
+            <Badge key={label} variant="outline" className="h-4 px-1 text-[10px]">
+              {label}
+            </Badge>
+          ))}
+        </div>
       </TableCell>
-      <TableCell className="max-w-0 truncate text-[13px] text-foreground">
-        {standing.author ?? "author since deleted"}
-      </TableCell>
-      <TableCell className="w-px whitespace-nowrap">
+      <TableCell className="w-px py-2 align-top whitespace-nowrap">
         <StateMark
           state={standing.state}
           blockedOn={standing.blocked_on}
           derivation={standing.derivation}
         />
       </TableCell>
-      <TableCell className="w-14 text-right font-mono text-xs tabular-nums text-muted-foreground">
+      <TableCell className="w-10 py-2 text-right align-top font-mono text-xs tabular-nums text-muted-foreground">
+        {standing.comments > 0 ? standing.comments : ""}
+      </TableCell>
+      <TableCell className="w-12 py-2 text-right align-top font-mono text-xs tabular-nums text-muted-foreground">
         {daysSince(standing.since)}d
       </TableCell>
     </TableRow>

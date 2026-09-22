@@ -25,7 +25,14 @@ from starlette.types import Scope
 from steward import sync
 from steward.migrate import apply
 from steward.model import Event, payload_to_dict
-from steward.state import BlockedOn, Derivation, WorkflowState, current, fold
+from steward.state import (
+    BlockedOn,
+    Derivation,
+    WorkflowState,
+    current,
+    fold,
+    summarise,
+)
 from steward.store import read_events, repositories
 
 
@@ -65,14 +72,18 @@ class AddRepository(BaseModel):
 
 
 class Standing(BaseModel):
-    """Where a pull request is, and what put it there."""
+    """Where a pull request is, what put it there, and what it is about."""
 
     number: int
+    title: str | None
     state: WorkflowState
     blocked_on: BlockedOn
     derivation: Derivation
     since: datetime
     author: str | None
+    author_is_bot: bool
+    labels: list[str]
+    comments: int
 
 
 class Moment(BaseModel):
@@ -116,10 +127,24 @@ def _connect() -> Iterator[psycopg.Connection[Any]]:
         yield conn
 
 
-def _author(events: list[Event]) -> str | None:
-    """Whoever opened the pull request, from the event that says so."""
-    opened = next((e for e in events if e.kind.value == "opened"), None)
-    return opened.actor if opened else None
+def _standing(number: int, events: list[Event]) -> Standing | None:
+    """One row of the queue, every field of it folded from the log."""
+    now = current(events)
+    if now is None:
+        return None
+    about = summarise(events)
+    return Standing(
+        number=number,
+        title=about.title,
+        state=now.state,
+        blocked_on=now.blocked_on,
+        derivation=now.derivation,
+        since=now.start,
+        author=about.author,
+        author_is_bot=about.author_is_bot,
+        labels=list(about.labels),
+        comments=about.comments,
+    )
 
 
 @app.get("/api/repositories")
@@ -178,21 +203,15 @@ def get_pulls(owner: str, name: str, open_only: bool = True) -> list[Standing]:
 
     standings = []
     for number, events in grouped.items():
-        now = current(events)
-        if now is None:
+        standing = _standing(number, events)
+        if standing is None:
             continue
-        if open_only and now.state in (WorkflowState.MERGED, WorkflowState.CLOSED):
+        if open_only and standing.state in (
+            WorkflowState.MERGED,
+            WorkflowState.CLOSED,
+        ):
             continue
-        standings.append(
-            Standing(
-                number=number,
-                state=now.state,
-                blocked_on=now.blocked_on,
-                derivation=now.derivation,
-                since=now.start,
-                author=_author(events),
-            )
-        )
+        standings.append(standing)
     return sorted(standings, key=lambda s: s.since, reverse=True)
 
 
@@ -205,17 +224,10 @@ def get_pull(owner: str, name: str, number: int) -> PullRequest:
     if not events:
         raise HTTPException(404, f"no events for {owner}/{name}#{number}")
 
-    now = current(events)
-    assert now is not None, "events exist, so an interval does"
+    standing = _standing(number, events)
+    assert standing is not None, "events exist, so an interval does"
     return PullRequest(
-        standing=Standing(
-            number=number,
-            state=now.state,
-            blocked_on=now.blocked_on,
-            derivation=now.derivation,
-            since=now.start,
-            author=_author(events),
-        ),
+        standing=standing,
         episodes=[
             Episode(
                 start=i.start,

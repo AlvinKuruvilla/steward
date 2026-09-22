@@ -25,6 +25,13 @@ Working notes. Deliverables and their acceptance bars live in `ROADMAP.md`.
 2. **`steward sync` / `steward events`,** then V0's acceptance: sync twice and
    add zero rows; truncate everything below the log, replay, diff identical.
 
+## Known problems
+
+- Changing what an event carries needs the log rebuilt, not re-synced. Writes
+  are `ON CONFLICT DO NOTHING` on the source id, so an existing row keeps its
+  old payload: adding the title to OPENED left every already-synced pull
+  request without one until the events were dropped and read again.
+
 ## Decisions still open
 
 - Whether Steward writes to GitHub at all. Acting on its own is ruled out;

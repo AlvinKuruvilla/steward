@@ -25,6 +25,7 @@ from githubkit.utils import UNSET
 from githubkit_schemas.latest.models import (
     LabeledIssueEvent,
     PullRequestSimple,
+    RenamedIssueEvent,
     ReviewDismissedIssueEvent,
     ReviewRequestedIssueEvent,
     ReviewRequestRemovedIssueEvent,
@@ -52,9 +53,11 @@ from steward.model import (
     LabelPayload,
     Payload,
     PullRequestReviewState,
+    RenamePayload,
     ReviewPayload,
     StateReasonPayload,
     SubjectType,
+    TitlePayload,
     validate_payload,
 )
 
@@ -75,6 +78,7 @@ KIND_FOR_EVENT: dict[str, EventKind] = {
     "labeled": EventKind.LABELED,
     "merged": EventKind.MERGED,
     "ready_for_review": EventKind.READY_FOR_REVIEW,
+    "renamed": EventKind.RENAMED,
     "reopened": EventKind.REOPENED,
     "review_dismissed": EventKind.REVIEW_DISMISSED,
     "review_request_removed": EventKind.REVIEW_REQUEST_REMOVED,
@@ -121,7 +125,6 @@ IGNORED = frozenset(
         "removed_from_project",
         "removed_from_project_v2",
         "removed_from_stack",
-        "renamed",
         "subscribed",
         "transferred",
         "unlocked",
@@ -227,6 +230,13 @@ def events_for_pull_request(
             acted_by = _user(item.actor)
             payload = _named(item.assignee, None, item.node_id)
 
+        elif isinstance(item, RenamedIssueEvent):
+            kind = EventKind.RENAMED
+            occurred_at = _when(item.created_at, "rename")
+            source_id = item.node_id
+            acted_by = _user(item.actor)
+            payload = RenamePayload(before=item.rename.from_, after=item.rename.to)
+
         elif isinstance(item, LabeledIssueEvent | UnlabeledIssueEvent):
             kind = (
                 EventKind.LABELED
@@ -317,7 +327,9 @@ def _opened(pr: PullRequestSimple) -> Event:
         source_id=f"pr:{pr.number}:opened",
         actor=actor,
         actor_type=actor_type,
-        payload=None,
+        # The title at the moment it opened. Nothing else in the timeline
+        # reports it, and `renamed` carries every change after.
+        payload=TitlePayload(title=pr.title),
     )
 
 

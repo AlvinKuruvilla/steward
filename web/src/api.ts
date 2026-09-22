@@ -21,11 +21,15 @@ export type Derivation = "EVENT" | "POLICY" | "UNKNOWN";
 
 export interface Standing {
   number: number;
+  title: string | null;
   state: WorkflowState;
   blocked_on: BlockedOn;
   derivation: Derivation;
   since: string;
   author: string | null;
+  author_is_bot: boolean;
+  labels: string[];
+  comments: number;
 }
 
 export interface Repository {

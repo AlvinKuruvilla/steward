@@ -86,7 +86,11 @@ class EventKind(StrEnum):
 
     # GitHub emits no event when a PR opens; we derive it from createdAt. With
     # no node ID to key on, source_id is synthesized as "pr:<number>:opened".
+    # It carries the opening title, which no other event reports.
     OPENED = "opened"
+    # The only record that a title changed. Without it the opening title above
+    # would be the only one the log knows, and it goes stale on the first edit.
+    RENAMED = "renamed"
 
     # A PR opened as a draft emits neither, so the opening state is recovered
     # backwards from whichever of these fires first.
@@ -158,6 +162,27 @@ class DismissalPayload:
 
 
 @dataclass(frozen=True, slots=True)
+class TitlePayload:
+    "The title a subject was opened with"
+
+    # Ref: https://docs.github.com/en/rest/pulls/pulls
+
+    title: str
+
+
+@dataclass(frozen=True, slots=True)
+class RenamePayload:
+    "A title, before and after"
+
+    # Ref: https://docs.github.com/en/rest/issues/timeline
+
+    # Both halves are stored. The fold needs `after`; `before` is what GitHub
+    # reported, and a log that drops half an event is not a log of facts.
+    before: str
+    after: str
+
+
+@dataclass(frozen=True, slots=True)
 class LabelPayload:
     "The label added or removed"
 
@@ -203,6 +228,8 @@ class StateReasonPayload:
 # forgets a shape, so widen it only alongside the folds that consume it.
 Payload = (
     ActorRef
+    | TitlePayload
+    | RenamePayload
     | ReviewPayload
     | DismissalPayload
     | LabelPayload
@@ -214,6 +241,8 @@ Payload = (
 
 PayloadType = (
     type[ActorRef]
+    | type[TitlePayload]
+    | type[RenamePayload]
     | type[ReviewPayload]
     | type[DismissalPayload]
     | type[LabelPayload]
@@ -223,7 +252,8 @@ PayloadType = (
 )
 
 PAYLOAD_FOR: dict[EventKind, PayloadType | None] = {
-    EventKind.OPENED: None,
+    EventKind.OPENED: TitlePayload,
+    EventKind.RENAMED: RenamePayload,
     EventKind.READY_FOR_REVIEW: None,
     EventKind.CONVERT_TO_DRAFT: None,
     EventKind.REOPENED: None,
@@ -337,6 +367,10 @@ def payload_from_dict(kind: EventKind, data: Mapping[str, JsonValue]) -> Payload
             previous_state=PullRequestReviewState(_str(data, "previous_state")),
             review_id=_str(data, "review_id"),
         )
+    if shape is TitlePayload:
+        return TitlePayload(title=_str(data, "title"))
+    if shape is RenamePayload:
+        return RenamePayload(before=_str(data, "before"), after=_str(data, "after"))
     if shape is LabelPayload:
         return LabelPayload(name=_str(data, "name"))
     if shape is CommitPayload:

@@ -14,7 +14,16 @@ from dataclasses import dataclass
 from datetime import datetime
 from enum import StrEnum
 
-from steward.model import Event, EventKind, PullRequestReviewState, ReviewPayload
+from steward.model import (
+    ActorType,
+    Event,
+    EventKind,
+    LabelPayload,
+    PullRequestReviewState,
+    RenamePayload,
+    ReviewPayload,
+    TitlePayload,
+)
 
 
 class WorkflowState(StrEnum):
@@ -171,3 +180,55 @@ def _opened_as_draft(ordered: Sequence[Event]) -> bool:
         if event.kind is EventKind.CONVERT_TO_DRAFT:
             return False
     return False
+
+
+@dataclass(frozen=True, slots=True)
+class Summary:
+    """What a queue row needs, all of it folded from the log."""
+
+    title: str | None
+    labels: tuple[str, ...]
+    comments: int
+    author: str | None
+    author_is_bot: bool
+
+
+def summarise(events: Iterable[Event]) -> Summary:
+    """Everything about a subject that is not its state.
+
+    Title and labels are current values folded from the events that changed
+    them, not a snapshot: a snapshot could not be replayed from the log, and
+    anything that cannot be replayed has to be re-fetched to be trusted.
+    """
+    ordered = sorted(events, key=lambda event: event.occurred_at)
+
+    title: str | None = None
+    labels: list[str] = []
+    comments = 0
+    author: str | None = None
+    author_is_bot = False
+
+    for event in ordered:
+        payload = event.payload
+        if event.kind is EventKind.OPENED:
+            author, author_is_bot = event.actor, event.actor_type is ActorType.BOT
+            if isinstance(payload, TitlePayload):
+                title = payload.title
+        elif event.kind is EventKind.RENAMED and isinstance(payload, RenamePayload):
+            title = payload.after
+        elif event.kind is EventKind.LABELED and isinstance(payload, LabelPayload):
+            if payload.name not in labels:
+                labels.append(payload.name)
+        elif event.kind is EventKind.UNLABELED and isinstance(payload, LabelPayload):
+            if payload.name in labels:
+                labels.remove(payload.name)
+        elif event.kind is EventKind.COMMENT:
+            comments += 1
+
+    return Summary(
+        title=title,
+        labels=tuple(labels),
+        comments=comments,
+        author=author,
+        author_is_bot=author_is_bot,
+    )
