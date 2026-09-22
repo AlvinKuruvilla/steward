@@ -143,6 +143,67 @@
     letter-spacing: -0.01em;
   }
 
+  /* Label chips, coloured by the label's own hex the way github.com colours it.
+     The formulas are Primer's, copied from global-54ba76e934a49d7c.css on
+     2026-09-22: perceived lightness picks black or white text in light mode,
+     and in dark mode the fill drops to 18% alpha while the text is lightened
+     until it clears the same threshold. Anything simpler -- the raw hex as a
+     fill in both themes -- makes half a repository's labels unreadable in one
+     theme or the other. --label-* come from the Label component. */
+  .chip {
+    --perceived-lightness: calc(
+      ((var(--label-r) * 0.2126) + (var(--label-g) * 0.7152) +
+        (var(--label-b) * 0.0722)) / 255
+    );
+    --lightness-switch: max(
+      0,
+      min(calc((1 / (var(--lightness-threshold) - var(--perceived-lightness)))), 1)
+    );
+    --lightness-threshold: 0.453;
+    --border-threshold: 0.96;
+    --border-alpha: max(
+      0,
+      min(calc((var(--perceived-lightness) - var(--border-threshold)) * 100), 1)
+    );
+
+    color: hsl(0deg, 0%, calc(var(--lightness-switch) * 100%));
+    background: rgb(var(--label-r), var(--label-g), var(--label-b));
+    border-color: hsla(
+      var(--label-h),
+      calc(var(--label-s) * 1%),
+      calc((var(--label-l) - 25) * 1%),
+      var(--border-alpha)
+    );
+  }
+
+  [data-theme="dark"] .chip {
+    --lightness-threshold: 0.6;
+    --background-alpha: 0.18;
+    --border-alpha: 0.3;
+    --lighten-by: calc(
+      ((var(--lightness-threshold) - var(--perceived-lightness)) * 100) *
+        var(--lightness-switch)
+    );
+
+    color: hsl(
+      var(--label-h),
+      calc(var(--label-s) * 1%),
+      calc((var(--label-l) + var(--lighten-by)) * 1%)
+    );
+    background: rgba(
+      var(--label-r),
+      var(--label-g),
+      var(--label-b),
+      var(--background-alpha)
+    );
+    border-color: hsla(
+      var(--label-h),
+      calc(var(--label-s) * 1%),
+      calc((var(--label-l) + var(--lighten-by)) * 1%),
+      var(--border-alpha)
+    );
+  }
+
   ::selection {
     background: var(--slate-a5);
   }

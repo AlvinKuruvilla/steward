@@ -11,9 +11,9 @@ import {
   type Standing,
 } from "@/api";
 import { Avatar } from "@/components/avatar";
+import { Label } from "@/components/label";
 import { StateMark } from "@/components/state-mark";
 import { useKeys } from "@/keys";
-import { Badge } from "@/components/ui/badge";
 import {
   Empty,
   EmptyDescription,
@@ -173,6 +173,24 @@ export function Component() {
   );
 }
 
+/**
+ * The repository's label colours, name to hex.
+ *
+ * Every row asks for this; one query key means one request, and the colours
+ * outlive the queue, so nothing here refetches.
+ */
+function useLabels(repository: Repository): Record<string, string> | undefined {
+  const { data } = useQuery({
+    queryKey: ["labels", repository.owner, repository.name],
+    staleTime: Infinity,
+    queryFn: () =>
+      get<Record<string, string>>(
+        `/api/repositories/${repository.owner}/${repository.name}/labels`,
+      ),
+  });
+  return data;
+}
+
 function Group({
   title,
   note,
@@ -241,6 +259,8 @@ function Row({
   first: boolean;
   under: boolean;
 }) {
+  const labels = useLabels(repository);
+
   return (
     <Link
       to={`/${repository.owner}/${repository.name}/pulls/${standing.number}`}
@@ -276,13 +296,7 @@ function Row({
             </span>
           ) : null}
           {standing.labels.slice(0, 2).map((label) => (
-            <Badge
-              key={label}
-              variant="outline"
-              className="h-4 shrink-0 px-1 text-[10px] font-normal"
-            >
-              {label}
-            </Badge>
+            <Label key={label} name={label} hex={labels?.[label]} />
           ))}
         </span>
         </span>

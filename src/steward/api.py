@@ -17,9 +17,11 @@ from typing import Any
 import psycopg
 from fastapi import FastAPI, HTTPException
 from fastapi.staticfiles import StaticFiles
+from githubkit import GitHub
+from githubkit.exception import RequestFailed
 from pydantic import BaseModel
 from starlette.exceptions import HTTPException as StarletteHTTPException
-from starlette.responses import Response
+from starlette.responses import RedirectResponse, Response
 from starlette.types import Scope
 
 from steward import sync
@@ -151,6 +153,73 @@ def _standing(number: int, events: list[Event]) -> Standing | None:
         last_actor=about.last_actor,
         last_at=about.last_at,
     )
+
+
+# Avatars, by login, because a login is all the log stores.
+#
+# `github.com/<login>.png` covers people and not GitHub Apps: an app's login
+# carries a `[bot]` suffix that belongs to no account, and `github-actions` has
+# no user page at all. `GET /users/<login>` answers for every kind of account,
+# and it needs the token this process already holds.
+_avatars: dict[str, str] = {}
+
+
+@app.get("/api/avatars/{login}")
+async def get_avatar(login: str) -> RedirectResponse:
+    """Redirect to an account's avatar, whatever kind of account it is."""
+    known = _avatars.get(login)
+    if known is None:
+        token = os.environ.get("GITHUB_TOKEN")
+        if not token:
+            raise HTTPException(500, "GITHUB_TOKEN is not set")
+        try:
+            async with GitHub(token) as gh:
+                account = await gh.rest.users.async_get_by_username(username=login)
+        except RequestFailed as failed:
+            raise HTTPException(404, f"no account named {login}") from failed
+        known = _avatars.setdefault(login, account.parsed_data.avatar_url)
+
+    # Cached hard: an avatar moves rarely, and the browser asking once per
+    # login per day is the difference between this and a rate limit.
+    return RedirectResponse(
+        known, status_code=307, headers={"cache-control": "public, max-age=86400"}
+    )
+
+
+# Label colours, by repository. The log stores a label's name and nothing else,
+# and GitHub recolours a label everywhere the moment it is edited, so the colour
+# a chip should carry is the repository's current one rather than whichever hex
+# rode along on the event. That is a property of the repository, so it is
+# fetched per repository and not folded.
+_labels: dict[tuple[str, str], dict[str, str]] = {}
+
+
+@app.get("/api/repositories/{owner}/{name}/labels")
+async def get_labels(owner: str, name: str) -> dict[str, str]:
+    """Every label the repository defines, name to six-digit hex, no `#`."""
+    known = _labels.get((owner, name))
+    if known is None:
+        token = os.environ.get("GITHUB_TOKEN")
+        if not token:
+            raise HTTPException(500, "GITHUB_TOKEN is not set")
+        try:
+            async with GitHub(token) as gh:
+                pages = gh.rest.paginate(
+                    gh.rest.issues.async_list_labels_for_repo,
+                    owner=owner,
+                    repo=name,
+                    per_page=100,
+                )
+                known = {label.name: label.color async for label in pages}
+        except RequestFailed as failed:
+            raise HTTPException(
+                404, f"cannot read labels for {owner}/{name}"
+            ) from failed
+        _labels[(owner, name)] = known
+
+    # A label that no longer exists keeps no colour here; the interface falls
+    # back to a neutral chip rather than inventing one.
+    return known
 
 
 @app.get("/api/repositories")
