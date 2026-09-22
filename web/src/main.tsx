@@ -4,6 +4,7 @@ import { createRoot } from "react-dom/client";
 import { createBrowserRouter, RouterProvider } from "react-router";
 
 import { TooltipProvider } from "@/components/ui/tooltip";
+import { applyTheme, storedTheme } from "@/theme";
 
 import App from "@/App";
 import "@/index.css";
@@ -23,11 +24,8 @@ const router = createBrowserRouter([
   },
 ]);
 
-// Light, until there is a control to change it. Both of OpenWork's surfaces
-// are light, the Primer state colours here are their light values, and a dark
-// slate ground puts three greys within a few percent of each other.
-document.documentElement.dataset.theme = "light";
-document.documentElement.style.colorScheme = "light";
+// Before the first paint, so the page never flashes the wrong ground.
+applyTheme(storedTheme());
 
 const root = document.getElementById("root");
 if (!root) throw new Error("index.html has no #root");

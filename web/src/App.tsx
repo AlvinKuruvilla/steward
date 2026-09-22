@@ -12,7 +12,10 @@ import { NavLink, Outlet, useParams } from "react-router";
 import { get, type Repository } from "@/api";
 import { AddRepository } from "@/components/add-repository";
 import { Mark } from "@/components/mark";
+import { ThemeToggle } from "@/components/theme-toggle";
 
+// The window is the shell. A centred card would leave a third of a wide
+// monitor empty and make the queue narrower the bigger the screen gets.
 export default function App() {
   const { owner, name } = useParams();
   const { data: repositories } = useQuery({
@@ -27,11 +30,11 @@ export default function App() {
     repositories?.[0];
 
   return (
-    <div className="min-h-screen bg-[var(--slate-3)] py-6">
-      <div className="mx-auto grid min-h-[calc(100vh-3rem)] max-w-[1120px] grid-cols-[13.5rem_1fr] overflow-hidden rounded-xl border border-border bg-background shadow-[0_1px_2px_rgb(0_0_0/0.04),0_8px_24px_rgb(15_23_42/0.06)]">
+    <div className="h-screen bg-background">
+      <div className="grid h-full grid-cols-[14rem_minmax(0,1fr)]">
         <Sidebar repositories={repositories} selected={selected} />
 
-        <div className="flex min-w-0 flex-col border-l border-border bg-background">
+        <div className="flex min-w-0 flex-col overflow-hidden bg-background">
           <header className="flex h-13 shrink-0 items-center justify-between gap-6 border-b border-border px-6 py-3">
             <div className="flex min-w-0 items-baseline gap-3">
               <h1 className="truncate font-mono text-[13px] text-foreground">
@@ -42,8 +45,12 @@ export default function App() {
             <AddRepository />
           </header>
 
-          <main className="min-w-0 flex-1 px-6 py-5">
-            <Outlet context={selected} />
+          <main className="min-w-0 flex-1 overflow-y-auto px-8 py-6">
+            {/* The chrome fills the window; the reading column does not, so a
+                title never runs the width of a 32-inch monitor. */}
+            <div className="mx-auto max-w-[68rem]">
+              <Outlet context={selected} />
+            </div>
           </main>
         </div>
       </div>
@@ -64,6 +71,9 @@ function Sidebar({
         <Mark />
         <span className="text-[13px] font-semibold tracking-[-0.01em] text-foreground">
           Steward
+        </span>
+        <span className="ml-auto">
+          <ThemeToggle />
         </span>
       </div>
 
