@@ -1,4 +1,15 @@
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="assets/steward-dark.svg">
+  <img src="assets/steward.svg" alt="" width="40" height="40">
+</picture>
+
 # Steward
+
+[![CI](https://github.com/AlvinKuruvilla/steward/actions/workflows/ci.yml/badge.svg)](https://github.com/AlvinKuruvilla/steward/actions/workflows/ci.yml)
+[![License](https://img.shields.io/github/license/AlvinKuruvilla/steward?color=blue)](LICENSE)
+[![Python](https://img.shields.io/badge/python-3.13-blue?logo=python&logoColor=white)](pyproject.toml)
+[![Checked with mypy](https://img.shields.io/badge/mypy-strict-2a6db2)](pyproject.toml)
+[![Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)
 
 A workbench for running an open-source repository. Steward reads GitHub's event
 stream and tells a maintainer what is waiting on whom, with the events that say
