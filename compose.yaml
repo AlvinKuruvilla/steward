@@ -31,10 +31,11 @@ services:
       timeout: 3s
       retries: 20
     ports:
-      # Exposed so `psql` and the audit scripts can reach it from the host. A
-      # deployment that does not want this can drop the mapping; nothing in
-      # Steward depends on the port being published.
-      - "${STEWARD_DB_PORT:-5432}:5432"
+      # Bound to loopback. Without the 127.0.0.1 prefix Docker publishes on
+      # every interface, which would put Postgres on the network with the
+      # default password from this file. Nothing in Steward needs the port
+      # published at all; it is here so `psql` can reach it from the host.
+      - "127.0.0.1:${STEWARD_DB_PORT:-5432}:5432"
 
   steward:
     build: .
@@ -49,7 +50,10 @@ services:
       STEWARD_ADMIN_DATABASE_URL: postgresql://steward_migrator:${STEWARD_MIGRATOR_PASSWORD:-steward-dev}@db:5432/steward?options=-c%20role%3Dsteward_owner
       GITHUB_TOKEN: ${GITHUB_TOKEN:?set GITHUB_TOKEN in .env or the environment}
     ports:
-      - "${STEWARD_PORT:-8000}:8000"
+      # Loopback on the host. 0.0.0.0 below is the bind *inside* the container,
+      # which is what makes the mapping work; the host side is what decides who
+      # can reach it, and there is no authentication in front of this.
+      - "127.0.0.1:${STEWARD_PORT:-8000}:8000"
     # The API and the built interface, from one process. `docker compose run
     # steward sync <owner>/<repo>` still works for a one-off.
     command: ["serve", "--host", "0.0.0.0"]

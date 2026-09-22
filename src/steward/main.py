@@ -122,6 +122,14 @@ def serve(
     import uvicorn
 
     _require("STEWARD_DATABASE_URL")
+    if host not in ("127.0.0.1", "localhost", "::1"):
+        # Nothing authenticates a request. Inside a container this is how the
+        # port mapping reaches it, and compose publishes that mapping on
+        # loopback; anywhere else it puts the log on the network.
+        typer.echo(
+            f"warning: binding {host}, and Steward has no authentication",
+            err=True,
+        )
     uvicorn.run("steward.api:app", host=host, port=port, log_level="info")
 
 

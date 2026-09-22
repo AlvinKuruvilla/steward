@@ -5,8 +5,9 @@ stream and tells a maintainer what is waiting on whom, with the events that say
 so.
 
 > [!NOTE]
-> Early development. The data model and the GitHub normalizer work; there is no
-> CLI, no database writer and no UI, so there is nothing to install yet.
+> Early development. `docker compose up` serves an inbox for a repository you
+> have synced, on `127.0.0.1:8000`. Nothing authenticates a request, so the
+> ports are published to loopback and should stay there.
 > [`ROADMAP.md`](ROADMAP.md) says what each version has to prove.
 
 ## Why
