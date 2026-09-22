@@ -113,6 +113,18 @@ def events(
         )
 
 
+@app.command()
+def serve(
+    host: Annotated[str, typer.Option(help="interface to bind")] = "127.0.0.1",
+    port: Annotated[int, typer.Option(help="port to bind")] = 8000,
+) -> None:
+    """Serve the API, and the interface if it has been built."""
+    import uvicorn
+
+    _require("STEWARD_DATABASE_URL")
+    uvicorn.run("steward.api:app", host=host, port=port, log_level="info")
+
+
 def main(argv: list[str] | None = None) -> int:
     """Run the application and return a process exit code."""
     args = sys.argv[1:] if argv is None else argv

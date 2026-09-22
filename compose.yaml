@@ -48,10 +48,11 @@ services:
       # access; without it the engine can read nothing it just migrated.
       STEWARD_ADMIN_DATABASE_URL: postgresql://steward_migrator:${STEWARD_MIGRATOR_PASSWORD:-steward-dev}@db:5432/steward?options=-c%20role%3Dsteward_owner
       GITHUB_TOKEN: ${GITHUB_TOKEN:?set GITHUB_TOKEN in .env or the environment}
-    # V0 has no long-running process. The container exists so `docker compose run
-    # steward sync <repo>` works with no Python on the host; V1's web UI turns
-    # this into a real service with a command and a port.
-    command: ["--help"]
+    ports:
+      - "${STEWARD_PORT:-8000}:8000"
+    # The API and the built interface, from one process. `docker compose run
+    # steward sync <owner>/<repo>` still works for a one-off.
+    command: ["serve", "--host", "0.0.0.0"]
 
 volumes:
   db-data:

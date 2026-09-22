@@ -26,3 +26,6 @@ docs/audit/
 # Frontend
 web/node_modules/
 web/dist/
+
+# Built interface, copied in by the Dockerfile.
+src/steward/web/

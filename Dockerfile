@@ -1,3 +1,15 @@
+FROM node:26-slim AS interface
+
+WORKDIR /web
+# corepack is not in node:26 images.
+RUN npm install --global pnpm@9
+COPY web/package.json web/pnpm-lock.yaml ./
+RUN --mount=type=cache,target=/root/.local/share/pnpm/store \
+    pnpm install --frozen-lockfile
+COPY web/ ./
+RUN pnpm build
+
+
 FROM python:3.13-slim AS build
 
 COPY --from=ghcr.io/astral-sh/uv:0.9.13 /uv /bin/uv
@@ -31,5 +43,9 @@ COPY --from=build --chown=steward:steward /app/.venv /app/.venv
 ENV PATH="/app/.venv/bin:$PATH" \
     PYTHONUNBUFFERED=1
 
+# Served by the API at /, so one container holds both.
+COPY --from=interface --chown=steward:steward /web/dist /app/.venv/lib/python3.13/site-packages/steward/web
+
+EXPOSE 8000
 ENTRYPOINT ["steward"]
 CMD ["--help"]

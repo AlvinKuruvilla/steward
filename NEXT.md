@@ -25,6 +25,12 @@ Working notes. Deliverables and their acceptance bars live in `ROADMAP.md`.
 2. **`steward sync` / `steward events`,** then V0's acceptance: sync twice and
    add zero rows; truncate everything below the log, replay, diff identical.
 
+## Known problems
+
+- The tests drop every table in `public`, so running them against the database
+  a developer is also syncing into wipes it. They need their own database, or a
+  transaction that rolls back.
+
 ## Decisions still open
 
 - Whether Steward writes to GitHub at all. Acting on its own is ruled out;
