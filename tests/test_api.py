@@ -17,30 +17,20 @@ from typing import Any
 import httpx
 import psycopg
 import pytest
+from conftest import ENGINE_URL
 from fastapi.testclient import TestClient
 from githubkit import GitHub
 
 from steward.api import app
-from steward.migrate import apply
 from steward.normalize import events_for_pull_request
 from steward.store import repository_id, write
 
-ADMIN_URL = os.environ.get("STEWARD_ADMIN_DATABASE_URL")
-ENGINE_URL = os.environ.get(
-    "STEWARD_DATABASE_URL",
-    "postgresql://steward_engine:steward-dev@127.0.0.1:5432/steward",
-)
 FIXTURE = Path(__file__).parent / "data" / "precogly_rest_timeline.json"
 TIMELINE = re.compile(r"^/repos/precogly/precogly/issues/(\d+)/timeline$")
 
-pytestmark = pytest.mark.skipif(
-    ADMIN_URL is None, reason="needs a database: set STEWARD_ADMIN_DATABASE_URL"
-)
-
 
 @pytest.fixture
-def client() -> Iterator[TestClient]:
-    assert ADMIN_URL is not None
+def client(engine: psycopg.Connection[Any]) -> Iterator[TestClient]:
     recorded = json.loads(FIXTURE.read_text())
 
     def replay(request: httpx.Request) -> httpx.Response:
@@ -52,39 +42,25 @@ def client() -> Iterator[TestClient]:
 
     gh: GitHub[Any] = GitHub("recorded", transport=httpx.MockTransport(replay))
 
-    with psycopg.connect(ADMIN_URL) as admin:
-        with admin.transaction():
-            admin.execute("""
-                DO $$
-                DECLARE t record;
-                BEGIN
-                    FOR t IN SELECT tablename FROM pg_tables WHERE schemaname = 'public'
-                    LOOP
-                        EXECUTE format('DROP TABLE public.%I CASCADE', t.tablename);
-                    END LOOP;
-                END $$
-            """)
-        apply(admin)
+    repo = repository_id(engine, "precogly", "precogly", "R_kgDOabc")
+    for pr in gh.rest.pulls.list(
+        owner="precogly", repo="precogly", state="all", per_page=26
+    ).parsed_data:
+        write(
+            engine,
+            repo,
+            events_for_pull_request(
+                pr,
+                gh.rest.issues.list_events_for_timeline(
+                    owner="precogly",
+                    repo="precogly",
+                    issue_number=pr.number,
+                    per_page=100,
+                ).parsed_data,
+            ),
+        )
 
-    with psycopg.connect(ENGINE_URL) as conn:
-        repo = repository_id(conn, "precogly", "precogly", "R_kgDOabc")
-        for pr in gh.rest.pulls.list(
-            owner="precogly", repo="precogly", state="all", per_page=26
-        ).parsed_data:
-            write(
-                conn,
-                repo,
-                events_for_pull_request(
-                    pr,
-                    gh.rest.issues.list_events_for_timeline(
-                        owner="precogly",
-                        repo="precogly",
-                        issue_number=pr.number,
-                        per_page=100,
-                    ).parsed_data,
-                ),
-            )
-
+    # The app reads this when it connects, and it must be the test database.
     os.environ["STEWARD_DATABASE_URL"] = ENGINE_URL
     yield TestClient(app)
 

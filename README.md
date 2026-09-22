@@ -41,17 +41,19 @@ Each answer says where it came from: `EVENT` when the events alone decide it,
 
 ## Development
 
-Requires Python 3.13 and [uv](https://docs.astral.sh/uv/).
+Requires Python 3.13, [uv](https://docs.astral.sh/uv/), Docker and
+[just](https://just.systems).
 
 ```sh
-uv sync
-uv run pytest
-uv run mypy --strict src/steward
-uv run ruff check src tests
+just fresh          # database, migrations, a synced repository, the interface
+just check          # format, lint, types, tests
+just sync owner/repo
 ```
 
 Tests replay a recorded GitHub response through `httpx.MockTransport`, so they
-need no network and no token.
+need no network and no token. The ones that need Postgres use `steward_test`
+and skip when nothing is listening, so `just test` never touches a database you
+have synced into.
 
 ## Documentation
 

@@ -1,0 +1,28 @@
+-- Applied to every Steward database by 20-databases.sql. Schemas, grants
+-- and default privileges are per-database; only the roles above are not.
+--
+-- Not named *.sql: the Postgres entrypoint runs every .sql file it finds
+-- here, and this one is included rather than run on its own.
+
+-- `public` holds the event log and everything derived from it.
+
+ALTER SCHEMA public OWNER TO steward_owner;
+GRANT USAGE ON SCHEMA public TO steward_engine, steward_enrich;
+
+CREATE SCHEMA enrichment AUTHORIZATION steward_owner;
+GRANT USAGE ON SCHEMA enrichment TO steward_enrich;
+-- Deliberately absent: any grant of `enrichment` to steward_engine. The REVOKE
+-- is redundant with that absence and stays so the intent survives someone
+-- adding a blanket GRANT above it.
+REVOKE ALL ON SCHEMA enrichment FROM steward_engine;
+
+-- Enrichment reads the event log; it never writes to it. Default privileges
+-- apply to tables the owner creates later.
+ALTER DEFAULT PRIVILEGES FOR ROLE steward_owner IN SCHEMA public
+    GRANT SELECT, INSERT, UPDATE, DELETE ON TABLES TO steward_engine;
+ALTER DEFAULT PRIVILEGES FOR ROLE steward_owner IN SCHEMA public
+    GRANT SELECT ON TABLES TO steward_enrich;
+ALTER DEFAULT PRIVILEGES FOR ROLE steward_owner IN SCHEMA public
+    GRANT USAGE, SELECT ON SEQUENCES TO steward_engine;
+ALTER DEFAULT PRIVILEGES FOR ROLE steward_owner IN SCHEMA enrichment
+    GRANT SELECT, INSERT, UPDATE, DELETE ON TABLES TO steward_enrich;
