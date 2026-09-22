@@ -1,22 +1,23 @@
 import type { BlockedOn, Derivation, WorkflowState } from "@/api";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import { cn } from "@/lib/utils";
 
 /**
  * A state, and where the answer came from.
  *
  * The derivation class is never hidden and never inferred, which is what makes
  * the queue auditable rather than something to trust. UNKNOWN is the quietest
- * mark on the row: it is an absence of evidence, and it should not read as an
- * alert.
+ * mark on the row: an absence of evidence should not read as an alert.
  */
 const tone: Record<WorkflowState, string> = {
-  DRAFT: "var(--color-draft)",
-  UNTRIAGED: "var(--color-draft)",
-  REVIEW_WAIT: "var(--color-attention)",
-  RE_REVIEW_WAIT: "var(--color-attention)",
-  CHANGES_REQUESTED: "var(--color-closed)",
-  APPROVED: "var(--color-open)",
-  MERGED: "var(--color-merged)",
-  CLOSED: "var(--color-closed)",
+  DRAFT: "text-[var(--color-draft)]",
+  UNTRIAGED: "text-[var(--color-draft)]",
+  REVIEW_WAIT: "text-[var(--color-attention)]",
+  RE_REVIEW_WAIT: "text-[var(--color-attention)]",
+  CHANGES_REQUESTED: "text-[var(--color-closed)]",
+  APPROVED: "text-[var(--color-open)]",
+  MERGED: "text-[var(--color-merged)]",
+  CLOSED: "text-[var(--color-closed)]",
 };
 
 const spoken: Record<WorkflowState, string> = {
@@ -30,6 +31,12 @@ const spoken: Record<WorkflowState, string> = {
   CLOSED: "closed",
 };
 
+const because: Record<Derivation, string> = {
+  EVENT: "Derived from GitHub events alone.",
+  POLICY: "Needed a rule from steward.toml.",
+  UNKNOWN: "No event and no rule says who holds this.",
+};
+
 export function StateMark({
   state,
   blockedOn,
@@ -40,25 +47,31 @@ export function StateMark({
   derivation: Derivation;
 }) {
   return (
-    <span
-      className="flex items-baseline gap-2"
-      title={`${state} · blocked on ${blockedOn} · ${derivation}`}
-    >
-      <span
-        aria-hidden
-        className="size-1.5 translate-y-[-1px] rounded-full"
-        style={{ background: tone[state] }}
-      />
-      <span className="derived text-[12px]" style={{ color: tone[state] }}>
-        {spoken[state]}
-      </span>
-      {derivation === "UNKNOWN" ? (
-        <span className="text-[11px] text-[var(--color-muted)] opacity-70">
-          no evidence
+    <Tooltip>
+      <TooltipTrigger
+        render={
+          <span className="inline-flex items-baseline gap-2 whitespace-nowrap" />
+        }
+      >
+        <span className={cn("font-mono text-xs tabular-nums", tone[state])}>
+          {spoken[state]}
         </span>
-      ) : derivation === "POLICY" ? (
-        <span className="text-[11px] text-[var(--color-muted)]">by rule</span>
-      ) : null}
-    </span>
+        <span
+          className={cn(
+            "text-[11px] text-muted-foreground",
+            derivation === "UNKNOWN" && "opacity-70",
+          )}
+        >
+          {derivation === "UNKNOWN"
+            ? "no evidence"
+            : derivation === "POLICY"
+              ? "by rule"
+              : blockedOn.toLowerCase()}
+        </span>
+      </TooltipTrigger>
+      <TooltipContent>
+        {state} · blocked on {blockedOn}. {because[derivation]}
+      </TooltipContent>
+    </Tooltip>
   );
 }

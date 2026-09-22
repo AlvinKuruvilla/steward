@@ -3,6 +3,9 @@ import { Link, useParams } from "react-router";
 
 import { get, type Derivation, type PullRequest, type WorkflowState } from "@/api";
 import { StateMark } from "@/components/state-mark";
+import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Table, TableBody, TableCell, TableRow } from "@/components/ui/table";
 
 /**
  * Why a pull request is where it is.
@@ -22,24 +25,24 @@ export function Component() {
   });
 
   if (error) {
-    return (
-      <p className="text-[13px] text-[var(--color-closed)]">{error.message}</p>
-    );
+    return <p className="text-sm text-destructive">{error.message}</p>;
   }
   if (isPending) {
-    return <p className="text-[13px] text-[var(--color-muted)]">Reading…</p>;
+    return <Skeleton className="h-64 w-full" />;
   }
 
   return (
     <div className="flex flex-col gap-8">
       <header className="flex items-baseline gap-4">
-        <Link
-          to={`/${owner}/${name}`}
-          className="text-[12px] text-[var(--color-muted)] hover:text-[var(--color-ink)]"
+        <Button
+          size="xs"
+          variant="ghost"
+          className="-ml-2 text-muted-foreground"
+          render={<Link to={`/${owner}/${name}`} />}
         >
           ← inbox
-        </Link>
-        <h2 className="derived text-[15px] text-[var(--color-ink)]">
+        </Button>
+        <h2 className="font-mono text-[15px] tabular-nums text-foreground">
           #{data.standing.number}
         </h2>
         <StateMark
@@ -47,75 +50,74 @@ export function Component() {
           blockedOn={data.standing.blocked_on}
           derivation={data.standing.derivation}
         />
-        <span className="text-[13px] text-[var(--color-muted)]">
+        <span className="text-[13px] text-muted-foreground">
           opened by {data.standing.author ?? "an account since deleted"}
         </span>
       </header>
 
       <div className="grid gap-10 lg:grid-cols-[minmax(0,22rem)_minmax(0,1fr)]">
         <section>
-          <h3 className="pb-2 text-[13px] font-medium text-[var(--color-ink)]">
+          <h3 className="pb-1.5 text-[13px] font-medium text-foreground">
             How it got here
           </h3>
-          <ol className="border-t border-[var(--color-line-soft)]">
-            {data.episodes.map((episode, index) => (
-              <li
-                key={`${episode.start}-${index}`}
-                className="grid grid-cols-[1fr_auto] items-baseline gap-3 border-b border-[var(--color-line-soft)] py-2"
-              >
-                <span className="flex items-baseline gap-2">
-                  <StateMark
-                    state={episode.state}
-                    blockedOn={episode.blocked_on}
-                    derivation={episode.derivation}
-                  />
-                </span>
-                <span className="derived text-[11px] text-[var(--color-muted)]">
-                  {span(episode.start, episode.end)}
-                </span>
-              </li>
-            ))}
-          </ol>
-          <p className="pt-3 text-[12px] leading-relaxed text-[var(--color-muted)]">
+          <Table>
+            <TableBody>
+              {data.episodes.map((episode, index) => (
+                <TableRow key={`${episode.start}-${index}`}>
+                  <TableCell>
+                    <StateMark
+                      state={episode.state}
+                      blockedOn={episode.blocked_on}
+                      derivation={episode.derivation}
+                    />
+                  </TableCell>
+                  <TableCell className="w-20 text-right font-mono text-[11px] tabular-nums text-muted-foreground">
+                    {span(episode.start, episode.end)}
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+          <p className="pt-3 text-xs leading-relaxed text-muted-foreground">
             {sentence(data.standing.state, data.standing.derivation)}
           </p>
         </section>
 
         <section>
-          <h3 className="pb-2 text-[13px] font-medium text-[var(--color-ink)]">
+          <h3 className="pb-1.5 text-[13px] font-medium text-foreground">
             What it was read from
           </h3>
-          <ol className="border-t border-[var(--color-line-soft)]">
-            {data.events.map((moment, index) => (
-              <li
-                key={`${moment.occurred_at}-${index}`}
-                className="grid grid-cols-[8.5rem_9rem_1fr] items-baseline gap-3 border-b border-[var(--color-line-soft)] py-1.5"
-              >
-                <time
-                  className="derived text-[11px] text-[var(--color-muted)]"
-                  dateTime={moment.occurred_at}
-                >
-                  {stamp(moment.occurred_at)}
-                </time>
-                <span className="derived truncate text-[12px] text-[var(--color-ink)]">
-                  {moment.kind}
-                </span>
-                <span className="flex min-w-0 items-baseline gap-2">
-                  <span className="truncate text-[12px] text-[var(--color-muted)]">
-                    {moment.actor ?? "—"}
-                  </span>
-                  {Object.entries(moment.payload).map(([key, value]) => (
-                    <span
-                      key={key}
-                      className="derived truncate text-[11px] text-[var(--color-muted)]"
-                    >
-                      {key}={String(value)}
+          <Table>
+            <TableBody>
+              {data.events.map((moment, index) => (
+                <TableRow key={`${moment.occurred_at}-${index}`}>
+                  <TableCell className="w-32 font-mono text-[11px] tabular-nums text-muted-foreground">
+                    <time dateTime={moment.occurred_at}>
+                      {stamp(moment.occurred_at)}
+                    </time>
+                  </TableCell>
+                  <TableCell className="w-36 truncate font-mono text-xs text-foreground">
+                    {moment.kind}
+                  </TableCell>
+                  <TableCell className="max-w-0">
+                    <span className="flex min-w-0 items-baseline gap-2">
+                      <span className="truncate text-xs text-muted-foreground">
+                        {moment.actor ?? "—"}
+                      </span>
+                      {Object.entries(moment.payload).map(([key, value]) => (
+                        <span
+                          key={key}
+                          className="truncate font-mono text-[11px] text-muted-foreground"
+                        >
+                          {key}={String(value)}
+                        </span>
+                      ))}
                     </span>
-                  ))}
-                </span>
-              </li>
-            ))}
-          </ol>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
         </section>
       </div>
     </div>

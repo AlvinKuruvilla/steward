@@ -26,14 +26,14 @@ export default function App() {
     repositories?.[0];
 
   return (
-    <div className="min-h-screen bg-[var(--slate-2)]">
-      <div className="mx-auto grid min-h-screen max-w-[1180px] grid-cols-[13rem_1fr] gap-px bg-[var(--color-line-soft)] px-6">
+    <div className="min-h-screen bg-sidebar">
+      <div className="mx-auto grid min-h-screen max-w-[1180px] grid-cols-[13rem_1fr] gap-px bg-border/60 px-6">
         <Sidebar repositories={repositories} selected={selected} />
 
-        <div className="flex min-w-0 flex-col bg-[var(--color-app)]">
-          <header className="flex h-14 shrink-0 items-center justify-between gap-6 border-b border-[var(--color-line-soft)] px-6">
+        <div className="flex min-w-0 flex-col bg-background">
+          <header className="flex h-14 shrink-0 items-center justify-between gap-6 border-b border-border/60 px-6">
             <div className="flex min-w-0 items-baseline gap-3">
-              <h1 className="derived truncate text-[13px] text-[var(--color-ink)]">
+              <h1 className="truncate font-mono text-[13px] text-foreground">
                 {selected ? `${selected.owner}/${selected.name}` : "Steward"}
               </h1>
               <SyncState repository={selected} />
@@ -58,8 +58,8 @@ function Sidebar({
   selected: Repository | undefined;
 }) {
   return (
-    <aside className="flex flex-col bg-[var(--color-raised)] px-3 py-5">
-      <span className="px-2 pb-3 text-[11px] font-medium tracking-[0.08em] text-[var(--color-muted)] uppercase">
+    <aside className="flex flex-col bg-sidebar px-3 py-5">
+      <span className="px-2 pb-3 text-[11px] font-medium tracking-[0.08em] text-muted-foreground uppercase">
         Repositories
       </span>
 
@@ -70,17 +70,17 @@ function Sidebar({
             to={`/${repository.owner}/${repository.name}`}
             className={() =>
               [
-                "group flex items-baseline gap-2 rounded-[var(--radius-row)] px-2 py-1.5",
+                "group flex h-8 items-center gap-2 rounded-md px-2",
                 "text-[13px] transition-colors duration-100",
                 repository === selected
-                  ? "bg-[var(--color-selected)] text-[var(--color-ink)]"
-                  : "text-[var(--color-muted)] hover:bg-[var(--color-hover)]",
+                  ? "bg-sidebar-accent text-sidebar-accent-foreground"
+                  : "text-muted-foreground hover:bg-muted",
               ].join(" ")
             }
           >
             <span className="truncate">{repository.name}</span>
             {repository.syncing ? (
-              <span className="derived ml-auto text-[11px] text-[var(--color-attention)]">
+              <span className="ml-auto font-mono text-[11px] tabular-nums text-[var(--color-attention)]">
                 {repository.pull_requests_read}
               </span>
             ) : null}
@@ -89,14 +89,14 @@ function Sidebar({
       </nav>
 
       {repositories?.length === 0 ? (
-        <p className="px-2 text-[13px] leading-relaxed text-[var(--color-muted)]">
+        <p className="px-2 text-[13px] leading-relaxed text-muted-foreground">
           Nothing synced. Give Steward a repository and it reads the pull request
           history into an event log.
         </p>
       ) : null}
 
-      <footer className="mt-auto px-2 pt-6 text-[11px] leading-relaxed text-[var(--color-muted)]">
-        <span className="derived">mono</span> is derived from an event.
+      <footer className="mt-auto px-2 pt-6 text-[11px] leading-relaxed text-muted-foreground">
+        <span className="font-mono">mono</span> is derived from an event.
         <br />
         Prose is not.
       </footer>
@@ -109,7 +109,7 @@ function SyncState({ repository }: { repository: Repository | undefined }) {
 
   if (repository.sync_error) {
     return (
-      <span className="text-[12px] text-[var(--color-closed)]">
+      <span className="text-xs text-destructive">
         {repository.sync_error}
       </span>
     );
@@ -117,10 +117,10 @@ function SyncState({ repository }: { repository: Repository | undefined }) {
 
   if (repository.syncing) {
     return (
-      <span className="flex items-baseline gap-1.5 text-[12px] text-[var(--color-muted)]">
+      <span className="flex items-baseline gap-1.5 text-xs text-muted-foreground">
         <span className="size-1.5 translate-y-[-1px] animate-pulse rounded-full bg-[var(--color-attention)]" />
         reading
-        <span className="derived text-[var(--color-ink)]">
+        <span className="font-mono tabular-nums text-foreground">
           {repository.pull_requests_read}
         </span>
         pull requests
@@ -131,7 +131,7 @@ function SyncState({ repository }: { repository: Repository | undefined }) {
   if (!repository.last_sync) return null;
 
   return (
-    <span className="text-[12px] text-[var(--color-muted)]">
+    <span className="text-xs text-muted-foreground">
       synced{" "}
       <time dateTime={repository.last_sync}>
         {new Date(repository.last_sync).toLocaleString(undefined, {

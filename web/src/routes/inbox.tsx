@@ -9,6 +9,14 @@ import {
   type Standing,
 } from "@/api";
 import { StateMark } from "@/components/state-mark";
+import {
+  Empty,
+  EmptyDescription,
+  EmptyHeader,
+  EmptyTitle,
+} from "@/components/ui/empty";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Table, TableBody, TableCell, TableRow } from "@/components/ui/table";
 
 /**
  * The queue, cut by who it is waiting on rather than by state. A maintainer
@@ -51,14 +59,16 @@ export function Component() {
   if (!repository) return <Welcome />;
   if (repository.syncing) return <Reading repository={repository} />;
   if (error) {
-    return (
-      <p className="max-w-prose text-[13px] text-[var(--color-closed)]">
-        {error.message}
-      </p>
-    );
+    return <p className="max-w-prose text-sm text-destructive">{error.message}</p>;
   }
   if (isPending) {
-    return <p className="text-[13px] text-[var(--color-muted)]">Reading the log…</p>;
+    return (
+      <div className="flex flex-col gap-2">
+        {[0, 1, 2, 3, 4].map((row) => (
+          <Skeleton key={row} className="h-10 w-full" />
+        ))}
+      </div>
+    );
   }
 
   return (
@@ -68,27 +78,29 @@ export function Component() {
         if (rows.length === 0) return null;
         return (
           <section key={group.title}>
-            <div className="flex items-baseline gap-3 pb-2">
-              <h2 className="text-[13px] font-medium text-[var(--color-ink)]">
+            <div className="flex items-baseline gap-3 pb-1.5">
+              <h2 className="text-[13px] font-medium text-foreground">
                 {group.title}
               </h2>
-              <span className="derived text-[11px] text-[var(--color-muted)]">
+              <span className="font-mono text-[11px] tabular-nums text-muted-foreground">
                 {rows.length}
               </span>
-              <span className="truncate text-[12px] text-[var(--color-muted)]">
+              <span className="truncate text-xs text-muted-foreground">
                 {group.note}
               </span>
             </div>
 
-            <ul className="border-t border-[var(--color-line-soft)]">
-              {rows.map((standing) => (
-                <Row
-                  key={standing.number}
-                  repository={repository}
-                  standing={standing}
-                />
-              ))}
-            </ul>
+            <Table>
+              <TableBody>
+                {rows.map((standing) => (
+                  <Row
+                    key={standing.number}
+                    repository={repository}
+                    standing={standing}
+                  />
+                ))}
+              </TableBody>
+            </Table>
           </section>
         );
       })}
@@ -103,62 +115,65 @@ function Row({
   repository: Repository;
   standing: Standing;
 }) {
+  const to = `/${repository.owner}/${repository.name}/pulls/${standing.number}`;
   return (
-    <li className="border-b border-[var(--color-line-soft)]">
-      <Link
-        to={`/${repository.owner}/${repository.name}/pulls/${standing.number}`}
-        className="grid h-10 grid-cols-[4.5rem_1fr_auto_3.5rem] items-center gap-4 px-2 transition-colors duration-100 hover:bg-[var(--color-hover)]"
-      >
-        <span className="derived text-[12px] text-[var(--color-muted)]">
+    <TableRow className="group">
+      <TableCell className="w-[4.5rem] font-mono text-xs tabular-nums text-muted-foreground">
+        <Link to={to} className="block after:absolute after:inset-0">
           #{standing.number}
-        </span>
-        <span className="truncate text-[13px] text-[var(--color-ink)]">
-          {standing.author ?? "author since deleted"}
-        </span>
+        </Link>
+      </TableCell>
+      <TableCell className="max-w-0 truncate text-[13px] text-foreground">
+        {standing.author ?? "author since deleted"}
+      </TableCell>
+      <TableCell className="w-px whitespace-nowrap">
         <StateMark
           state={standing.state}
           blockedOn={standing.blocked_on}
           derivation={standing.derivation}
         />
-        <span className="derived text-right text-[12px] text-[var(--color-muted)]">
-          {daysSince(standing.since)}d
-        </span>
-      </Link>
-    </li>
+      </TableCell>
+      <TableCell className="w-14 text-right font-mono text-xs tabular-nums text-muted-foreground">
+        {daysSince(standing.since)}d
+      </TableCell>
+    </TableRow>
   );
 }
 
 function Welcome() {
   return (
-    <div className="max-w-[46ch] pt-10">
-      <h2 className="text-[15px] text-[var(--color-ink)]">
-        Nothing here yet
-      </h2>
-      <p className="pt-2 text-[13px] leading-relaxed text-[var(--color-muted)]">
-        Steward reads a repository's pull request history into an append-only
-        log, then works out what is waiting on whom. It never writes to GitHub.
-      </p>
-      <p className="pt-3 text-[13px] leading-relaxed text-[var(--color-muted)]">
-        Put an <span className="derived">owner/repo</span> in the box above to
-        start. A few hundred pull requests take about half a minute.
-      </p>
-    </div>
+    <Empty className="pt-16">
+      <EmptyHeader>
+        <EmptyTitle>Nothing read yet</EmptyTitle>
+        <EmptyDescription>
+          Steward reads a repository's pull request history into an append-only
+          log, then works out what is waiting on whom. It never writes to
+          GitHub.
+        </EmptyDescription>
+        <EmptyDescription>
+          Put an <span className="font-mono">owner/repo</span> in the box above.
+          A few hundred pull requests take about half a minute.
+        </EmptyDescription>
+      </EmptyHeader>
+    </Empty>
   );
 }
 
 function Reading({ repository }: { repository: Repository }) {
   return (
-    <div className="max-w-[46ch] pt-10">
-      <h2 className="text-[15px] text-[var(--color-ink)]">
-        Reading {repository.owner}/{repository.name}
-      </h2>
-      <p className="pt-2 text-[13px] leading-relaxed text-[var(--color-muted)]">
-        <span className="derived text-[var(--color-ink)]">
-          {repository.pull_requests_read}
-        </span>{" "}
-        pull requests so far. Every timeline event is stored as it arrives, so
-        this only happens once per repository.
-      </p>
-    </div>
+    <Empty className="pt-16">
+      <EmptyHeader>
+        <EmptyTitle>
+          Reading {repository.owner}/{repository.name}
+        </EmptyTitle>
+        <EmptyDescription>
+          <span className="font-mono tabular-nums text-foreground">
+            {repository.pull_requests_read}
+          </span>{" "}
+          pull requests so far. Every timeline event is stored as it arrives, so
+          this happens once per repository.
+        </EmptyDescription>
+      </EmptyHeader>
+    </Empty>
   );
 }

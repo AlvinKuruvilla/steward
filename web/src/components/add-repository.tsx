@@ -2,6 +2,8 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 
 import { post, type Repository } from "@/api";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 
 /** Adding a repository is the app's job, not the terminal's. */
 export function AddRepository() {
@@ -28,25 +30,24 @@ export function AddRepository() {
         add.mutate(value.trim());
       }}
     >
-      <input
-        className="derived h-7 w-52 rounded-[var(--radius-row)] border border-[var(--color-line)] bg-[var(--color-app)] px-2 text-[12px] text-[var(--color-ink)] placeholder:text-[var(--color-muted)] focus:border-[var(--slate-8)] focus:outline-none"
+      {add.error ? (
+        <span className="text-xs text-destructive">{add.error.message}</span>
+      ) : null}
+      <Input
+        className="font-mono h-8 w-52 text-xs"
         placeholder="owner/repo"
         value={value}
         onChange={(event) => setValue(event.target.value)}
-        aria-label="repository to sync"
+        aria-label="repository to read"
       />
-      <button
+      <Button
         type="submit"
+        variant="outline"
+        size="sm"
         disabled={value.trim() === "" || add.isPending}
-        className="h-7 rounded-[var(--radius-row)] px-2.5 text-[12px] text-[var(--color-muted)] transition-colors duration-100 hover:bg-[var(--color-hover)] hover:text-[var(--color-ink)] disabled:pointer-events-none disabled:opacity-40"
       >
-        {add.isPending ? "Starting" : "Sync"}
-      </button>
-      {add.error ? (
-        <span className="text-[12px] text-[var(--color-closed)]">
-          {add.error.message}
-        </span>
-      ) : null}
+        {add.isPending ? "Reading" : "Read"}
+      </Button>
     </form>
   );
 }
