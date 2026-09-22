@@ -16,7 +16,10 @@ services:
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-steward-dev}
       POSTGRES_DB: steward
     volumes:
-      - db-data:/var/lib/postgresql/data
+      # postgres:18 stores data under a major-version subdirectory, so the
+      # mount goes one level up. Mounting /var/lib/postgresql/data instead
+      # makes the container refuse to start.
+      - db-data:/var/lib/postgresql
       # Files here run once, in filename order, on an empty data directory. They
       # do not re-run against an existing volume, so they may only create things
       # that never change: roles, schemas, grants. Table definitions belong in

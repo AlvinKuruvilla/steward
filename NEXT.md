@@ -21,9 +21,7 @@ Working notes. Deliverables and their acceptance bars live in `ROADMAP.md`.
      issues `SET ROLE`. That is a second connection string, which `compose.yaml`
      does not yet provide.
 
-2. **Dockerfile.** `compose.yaml` declares `build: .` and there is no Dockerfile.
-
-3. **Sync.** `fetch.events()` reads a whole repository through paged requests
+2. **Sync.** `fetch.events()` reads a whole repository through paged requests
    and normalizes it: precogly's full history is 259 pull requests and 1,889
    events, no failures. What is left between that and `steward sync`:
 
@@ -37,7 +35,7 @@ Working notes. Deliverables and their acceptance bars live in `ROADMAP.md`.
      ROADMAP.md's hermetic test story rests on.
    - **Writing rows,** which needs the migration runner above.
 
-4. **`steward sync` / `steward events`,** then V0's acceptance: sync twice and
+3. **`steward sync` / `steward events`,** then V0's acceptance: sync twice and
    add zero rows; truncate everything below the log, replay, diff identical.
 
 ## Decisions still open
