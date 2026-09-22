@@ -1,6 +1,7 @@
 # 0002 — What Steward looks like
 
-Status: accepted, 2026-09-21.
+Status: accepted, 2026-09-21. Amended 2026-09-22: diagrams render,
+and the stack is named.
 
 Steward should look like OpenWork's surface wrapped around GitHub's density. Both
 halves are real products with published tokens, so this document names values
@@ -113,12 +114,19 @@ and accordions, with `prefers-reduced-motion` honored.
 crossfade, or pulse. Animating state implies Steward is doing something, and
 Steward is showing something. The distinction is the whole product.
 
-## Diagrams stay ASCII
+## Diagrams
 
-The state diagrams and timelines are monospace ASCII inside the UI, not rendered
-SVG. They sit in the derived register where they belong, they survive being
-copied into an issue comment, they diff, and they cost nothing to maintain. A
-prettier renderer would be a downgrade.
+State diagrams and timelines render. The earlier decision here was ASCII, on the
+grounds that it survives being copied into an issue comment and costs nothing to
+maintain; that is a real loss and it is being paid for legibility.
+
+A rendered diagram still belongs to the derived register: monospace labels,
+tabular numerals, the same state colors as a row. Nothing is drawn that a
+maintainer cannot trace to an event.
+
+Charts follow the rule at the top of this document. A chart that could have been
+a number is a number. The first one that cannot is V1.5's lifetime attribution,
+and there is no chart before it.
 
 ## A screen
 
@@ -153,6 +161,19 @@ prettier renderer would be a downgrade.
 Every row's state carries its derivation class inline. It costs six characters
 and it is the difference between a tool a maintainer audits and a tool they
 either trust or abandon.
+
+## What renders it
+
+Vite, React, React Router, Tailwind and shadcn, with Geist from Fontsource --
+the stack `different-ai/openwork` runs in `apps/app`, which is where the tokens
+above were read from. Not Next.js: openwork uses that for `apps/review` and its
+marketing surfaces, and it would put a Node server in `compose.yaml` to render a
+tool that is local and single-user.
+
+Everything in openwork outside `/ee` is MIT, so components and tokens can be
+lifted with the notice attached. `/ee` is a separate proprietary licence.
+
+Python serves JSON; the built assets are static. One container, one server.
 
 ## Trade-offs
 
