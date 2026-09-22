@@ -14,16 +14,6 @@
   --font-sans: 'Geist Variable', sans-serif;
   --font-mono: "Geist Mono Variable", ui-monospace, monospace;
 
-  --color-app: var(--slate-1);
-  --color-raised: var(--slate-2);
-  --color-sunken: var(--slate-3);
-  --color-hover: var(--slate-a3);
-  --color-selected: var(--slate-a4);
-  --color-line: var(--slate-6);
-  --color-line-soft: var(--slate-4);
-  --color-muted: var(--slate-11);
-  --color-ink: var(--slate-12);
-
   /* Primer's functional values, unmodified: maintainers read green as open and
      purple as merged, and inventing a mapping costs recognition. */
   --color-open: #1a7f37;
@@ -31,12 +21,6 @@
   --color-closed: #d1242f;
   --color-attention: #9a6700;
   --color-draft: #59636e;
-
-  --radius-shell: 16px;
-  --radius-panel: 12px;
-  --radius-row: 6px;
-
-  --ease-panel: cubic-bezier(0.22, 1, 0.36, 1);
 
   --font-heading: var(--font-sans);
 
@@ -79,6 +63,12 @@
   --color-accent: var(--accent);
 
   --color-muted-foreground: var(--muted-foreground);
+
+  /* A surface, not the muted text colour -- Tailwind reads --color-muted for
+     bg-muted, and this is its only definition. Pointed at --slate-11 it put
+     row hover, kbd, the avatar fallback and every ghost button on a mid grey
+     with muted text over the top. */
+  --color-muted: var(--muted);
 
   --color-secondary-foreground: var(--secondary-foreground);
 
