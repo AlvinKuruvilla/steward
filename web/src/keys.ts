@@ -2,8 +2,9 @@
  * Keyboard navigation for the queue.
  *
  * `j`/`k` move, `enter` opens, `o` opens on GitHub -- the bindings GitHub and
- * every mail client already trained maintainers on. Typing in a field is left
- * alone, or the repository box would eat every keystroke.
+ * every mail client already trained maintainers on. `?` is handled by the
+ * panel that lists them, mounted in the shell. Typing in a field is left alone,
+ * or the repository box would eat every keystroke.
  */
 import { useEffect } from "react";
 
@@ -14,7 +15,7 @@ export interface Keymap {
   openExternally: () => void;
 }
 
-function typing(target: EventTarget | null): boolean {
+export function typing(target: EventTarget | null): boolean {
   if (!(target instanceof HTMLElement)) return false;
   return (
     target.isContentEditable ||

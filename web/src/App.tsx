@@ -12,6 +12,7 @@ import { NavLink, Outlet, useParams } from "react-router";
 import { get, type Repository } from "@/api";
 import { AddRepository } from "@/components/add-repository";
 import { Mark } from "@/components/mark";
+import { Shortcuts } from "@/components/shortcuts";
 import { ThemeToggle } from "@/components/theme-toggle";
 
 // The window is the shell. A centred card would leave a third of a wide
@@ -42,7 +43,10 @@ export default function App() {
               </h1>
               <SyncState repository={selected} />
             </div>
-            <AddRepository />
+            <div className="flex shrink-0 items-center gap-1">
+              <Shortcuts />
+              <AddRepository />
+            </div>
           </header>
 
           <main className="min-w-0 flex-1 overflow-y-auto px-8 py-6">

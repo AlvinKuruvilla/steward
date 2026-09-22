@@ -150,10 +150,6 @@ export function Component() {
             .
           </p>
         </div>
-        <p className="hidden shrink-0 text-xs text-muted-foreground sm:block">
-          <Key>j</Key> <Key>k</Key> move · <Key>↵</Key> open ·{" "}
-          <Key>o</Key> on GitHub
-        </p>
       </div>
 
       <div className="flex flex-col gap-7">
@@ -174,14 +170,6 @@ export function Component() {
         })}
       </div>
     </>
-  );
-}
-
-function Key({ children }: { children: React.ReactNode }) {
-  return (
-    <kbd className="rounded border border-border bg-muted px-1 font-mono text-[10px] text-foreground">
-      {children}
-    </kbd>
   );
 }
 
