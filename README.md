@@ -11,47 +11,25 @@ so.
 
 ## Why
 
-A maintainer's question is "what needs me today". GitHub answers with a list
-sorted by update time.
+GitHub answers "what needs me today" with a list sorted by update time, and its
+current fields cannot do better. `isDraft` is false on every merged pull request
+whatever it was opened as; a review that only commented looks like one that
+asked for changes.
 
-The answer lives in the event stream, and GitHub's current fields do not carry
-it. `isDraft` is false on every merged pull request, whatever it was opened as.
-A review that only left a comment looks like one that asked for changes.
-
-Folding the events answers both. Measured across 1,255 pull requests and 1,190
-issues in five repositories: every open pull request gets classified once one
-policy rule is supplied, and 87% of Precogly's come back `UNKNOWN` without it.
-[The audit](docs/audit/2026-09-21-contribution-flow.md) has the numbers and the
-method.
+The event stream answers both exactly. Folding it classified every open pull
+request across the five repositories measured, 1,255 in all, once one policy
+rule was supplied. [The audit](docs/audit/2026-09-21-contribution-flow.md) has
+the method.
 
 ## How it works
 
-GitHub stays canonical. Steward keeps an append-only log of the events it
-reported and derives everything else at read time.
+GitHub stays canonical. Steward keeps an append-only log of the events GitHub
+reported and folds it into `(workflow_state, blocked_on)` at read time, so the
+same events always give the same answer and every claim links to the event
+behind it.
 
-```text
-  GitHub REST timeline
-        │
-        │  normalize      one row per event, immutable
-        ▼
-  ┌───────────┐
-  │  events   │           opened, review, force_pushed, labeled, …
-  └───────────┘
-        │
-        │  fold           pure: same events, same answer
-        ▼
-  (workflow_state, blocked_on)
-        │
-        └── every claim links to the event that produced it
-```
-
-Conclusions stay out of the log: `STALE` and `NEEDS_ATTENTION` are judgements,
-and a judgement in an append-only log can never be revised. Drop every derived
-table, replay the log, and the state comes back identical. V0 has to prove that.
-
-Where events alone cannot answer, repository policy does, and the answer says
-which applied. `EVENT` for a state that came from an event, `POLICY` for one
-that needed a rule from `steward.toml`, `UNKNOWN` for the rest.
+Each answer says where it came from: `EVENT` when the events alone decide it,
+`POLICY` when a rule from `steward.toml` was needed, `UNKNOWN` when neither.
 
 ## Non-goals
 
