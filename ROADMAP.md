@@ -4,9 +4,10 @@ Steward is a workbench for running an open-source repository. GitHub stays
 canonical; Steward keeps a derived, deterministic model of contribution state and
 tells a maintainer what is waiting on whom, and why.
 
-Everything here is anchored to the measurements in
-[`docs/audit/2026-09-21-contribution-flow.md`](docs/audit/2026-09-21-contribution-flow.md).
-Where a version's acceptance bar is a number, that number came from the audit and
+Everything here is anchored to an audit of the five repositories in
+[`docs/corpus.md`](docs/corpus.md): 1,255 pull requests and 1,190 issues with
+full event timelines, measured on 2026-09-21. Where a version's acceptance bar
+is a number, that number came from the audit, and the corpus is public, so it
 can be re-measured.
 
 ## Settled before V0

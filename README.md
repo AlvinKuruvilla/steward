@@ -17,9 +17,8 @@ whatever it was opened as; a review that only commented looks like one that
 asked for changes.
 
 The event stream answers both exactly. Folding it classified every open pull
-request across the five repositories measured, 1,255 in all, once one policy
-rule was supplied. [The audit](docs/audit/2026-09-21-contribution-flow.md) has
-the method.
+request across the five repositories in [`docs/corpus.md`](docs/corpus.md),
+1,255 in all, once one policy rule was supplied.
 
 ## How it works
 
@@ -56,9 +55,6 @@ need no network and no token.
 ## Documentation
 
 - [`ROADMAP.md`](ROADMAP.md) — the versions, and the acceptance bar for each.
-- [`docs/audit/2026-09-21-contribution-flow.md`](docs/audit/2026-09-21-contribution-flow.md)
-  — the measurements the plan is built on, and where the original design was
-  wrong.
 - [`docs/corpus.md`](docs/corpus.md) — the test repositories, what each one
   catches, and what the corpus still has no example of.
 - [`docs/design/0001-llm-boundary.md`](docs/design/0001-llm-boundary.md) — where a
