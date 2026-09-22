@@ -11,6 +11,7 @@ import { NavLink, Outlet, useParams } from "react-router";
 
 import { get, type Repository } from "@/api";
 import { AddRepository } from "@/components/add-repository";
+import { Avatar } from "@/components/avatar";
 import { Mark } from "@/components/mark";
 import { Shortcuts } from "@/components/shortcuts";
 import { ThemeToggle } from "@/components/theme-toggle";
@@ -37,9 +38,18 @@ export default function App() {
 
         <div className="flex min-w-0 flex-col overflow-hidden bg-background">
           <header className="flex h-13 shrink-0 items-center justify-between gap-6 border-b border-border px-6 py-3">
-            <div className="flex min-w-0 items-baseline gap-3">
-              <h1 className="truncate font-mono text-[13px] text-foreground">
-                {selected ? `${selected.owner}/${selected.name}` : "Steward"}
+            <div className="flex min-w-0 items-center gap-3">
+              <h1 className="flex min-w-0 items-center gap-2 font-mono text-[13px] text-foreground">
+                {selected ? (
+                  <>
+                    <Avatar login={selected.owner} size={18} />
+                    <span className="truncate">
+                      {selected.owner}/{selected.name}
+                    </span>
+                  </>
+                ) : (
+                  "Steward"
+                )}
               </h1>
               <SyncState repository={selected} />
             </div>

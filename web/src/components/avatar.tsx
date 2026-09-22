@@ -1,5 +1,5 @@
 /**
- * An author's face.
+ * An account's face: an author, or the owner standing in for a repository.
  *
  * Resolved by the API rather than by guessing a URL: `github.com/<login>.png`
  * covers people and not GitHub Apps, whose login carries a `[bot]` suffix that

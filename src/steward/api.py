@@ -13,6 +13,7 @@ from contextlib import asynccontextmanager, contextmanager
 from datetime import datetime
 from pathlib import Path
 from typing import Any
+from urllib.parse import parse_qsl, urlencode, urlsplit, urlunsplit
 
 import psycopg
 from fastapi import FastAPI, HTTPException
@@ -160,15 +161,35 @@ def _standing(number: int, events: list[Event]) -> Standing | None:
 # `github.com/<login>.png` covers people and not GitHub Apps: an app's login
 # carries a `[bot]` suffix that belongs to no account, and `github-actions` has
 # no user page at all. `GET /users/<login>` answers for every kind of account,
-# and it needs the token this process already holds.
-_avatars: dict[str, str] = {}
+# and it needs the token this process already holds. An organisation answers
+# there too: a repository has no picture of its own, so its owner's stands in.
+#
+# A login that resolves to nothing is stored as `None`, so a deleted author
+# costs one lookup and not one per render. Membership is the test for a hit;
+# `.get` cannot tell a miss from a known-miss. Nothing expires, so an account
+# created after Steward asked stays missing until restart.
+_avatars: dict[str, str | None] = {}
+
+# Unsized, the CDN sends the whole upload: 22KB where `s=40` is 1.6KB, for an
+# image drawn into a 20-pixel circle (avatars.githubusercontent.com,
+# 2026-09-22). Nothing renders above 22 CSS pixels, so 64 is crisp at 2x and
+# soft at 3x; going higher is paid on every row of the inbox. One size for
+# every caller: one entry per login here, one URL per login in the browser.
+_AVATAR_PIXELS = 64
+
+
+def _sized(url: str, pixels: int) -> str:
+    """Return `url` with GitHub's `s` parameter set, preserving the rest."""
+    parts = urlsplit(url)
+    query = dict(parse_qsl(parts.query))
+    query["s"] = str(pixels)
+    return urlunsplit(parts._replace(query=urlencode(query)))
 
 
 @app.get("/api/avatars/{login}")
 async def get_avatar(login: str) -> RedirectResponse:
     """Redirect to an account's avatar, whatever kind of account it is."""
-    known = _avatars.get(login)
-    if known is None:
+    if login not in _avatars:
         token = os.environ.get("GITHUB_TOKEN")
         if not token:
             raise HTTPException(500, "GITHUB_TOKEN is not set")
@@ -176,8 +197,17 @@ async def get_avatar(login: str) -> RedirectResponse:
             async with GitHub(token) as gh:
                 account = await gh.rest.users.async_get_by_username(username=login)
         except RequestFailed as failed:
+            # Only a 404 is about the account. A 403 is the rate limit and
+            # a 401 a bad token; caching either would blank that face until
+            # restart over something that clears on its own.
+            if failed.response.status_code == 404:
+                _avatars[login] = None
             raise HTTPException(404, f"no account named {login}") from failed
-        known = _avatars.setdefault(login, account.parsed_data.avatar_url)
+        _avatars[login] = _sized(account.parsed_data.avatar_url, _AVATAR_PIXELS)
+
+    known = _avatars[login]
+    if known is None:
+        raise HTTPException(404, f"no account named {login}")
 
     # Cached hard: an avatar moves rarely, and the browser asking once per
     # login per day is the difference between this and a rate limit.

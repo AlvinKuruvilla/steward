@@ -21,7 +21,7 @@ from conftest import ENGINE_URL
 from fastapi.testclient import TestClient
 from githubkit import GitHub
 
-from steward.api import app
+from steward.api import _sized, app
 from steward.normalize import events_for_pull_request
 from steward.store import repository_id, write
 
@@ -109,3 +109,28 @@ def test_client_routes_fall_back_to_the_interface(client: TestClient) -> None:
     assert response.status_code in {200, 404}
     if response.status_code == 200:
         assert response.headers["content-type"].startswith("text/html")
+
+
+@pytest.mark.parametrize(
+    ("url", "expected"),
+    [
+        # The shape `GET /users/<login>` returns today.
+        (
+            "https://avatars.githubusercontent.com/u/5430905?v=4",
+            "https://avatars.githubusercontent.com/u/5430905?v=4&s=64",
+        ),
+        # Nothing promises `v` stays, and `?` written where `&` belongs is how
+        # string-joining a parameter onto a URL fails without saying so.
+        (
+            "https://avatars.githubusercontent.com/u/5430905",
+            "https://avatars.githubusercontent.com/u/5430905?s=64",
+        ),
+        # A size already there is replaced rather than repeated.
+        (
+            "https://avatars.githubusercontent.com/u/5430905?v=4&s=200",
+            "https://avatars.githubusercontent.com/u/5430905?v=4&s=64",
+        ),
+    ],
+)
+def test_an_avatar_url_carries_the_size_asked_for(url: str, expected: str) -> None:
+    assert _sized(url, 64) == expected
