@@ -37,6 +37,27 @@ export interface Repository {
   sync_error: string | null;
 }
 
+export interface Episode {
+  start: string;
+  end: string | null;
+  state: WorkflowState;
+  blocked_on: BlockedOn;
+  derivation: Derivation;
+}
+
+export interface Moment {
+  kind: string;
+  occurred_at: string;
+  actor: string | null;
+  payload: Record<string, string | number | boolean>;
+}
+
+export interface PullRequest {
+  standing: Standing;
+  episodes: Episode[];
+  events: Moment[];
+}
+
 export async function get<T>(path: string): Promise<T> {
   const response = await fetch(path);
   if (!response.ok) {

@@ -29,7 +29,7 @@ export function AddRepository() {
       }}
     >
       <input
-        className="derived w-56 rounded-[var(--radius-row)] border border-[var(--color-line)] bg-[var(--color-app)] px-2 py-1 outline-none focus:border-[var(--color-secondary)]"
+        className="derived h-7 w-52 rounded-[var(--radius-row)] border border-[var(--color-line)] bg-[var(--color-app)] px-2 text-[12px] text-[var(--color-ink)] placeholder:text-[var(--color-muted)] focus:border-[var(--slate-8)] focus:outline-none"
         placeholder="owner/repo"
         value={value}
         onChange={(event) => setValue(event.target.value)}
@@ -38,12 +38,12 @@ export function AddRepository() {
       <button
         type="submit"
         disabled={value.trim() === "" || add.isPending}
-        className="rounded-[var(--radius-row)] bg-[var(--color-accent)] px-3 py-1 text-sm text-white disabled:opacity-40"
+        className="h-7 rounded-[var(--radius-row)] px-2.5 text-[12px] text-[var(--color-muted)] transition-colors duration-100 hover:bg-[var(--color-hover)] hover:text-[var(--color-ink)] disabled:pointer-events-none disabled:opacity-40"
       >
-        {add.isPending ? "Starting…" : "Sync"}
+        {add.isPending ? "Starting" : "Sync"}
       </button>
       {add.error ? (
-        <span className="text-xs text-[var(--color-state-closed)]">
+        <span className="text-[12px] text-[var(--color-closed)]">
           {add.error.message}
         </span>
       ) : null}

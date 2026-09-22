@@ -13,11 +13,21 @@ const router = createBrowserRouter([
     children: [
       { index: true, lazy: () => import("@/routes/inbox") },
       { path: ":owner/:name", lazy: () => import("@/routes/inbox") },
-      { path: ":owner/:name/pulls", lazy: () => import("@/routes/inbox") },
-      { path: ":owner/:name/bots", lazy: () => import("@/routes/inbox") },
+      {
+        path: ":owner/:name/pulls/:number",
+        lazy: () => import("@/routes/pull-request"),
+      },
     ],
   },
 ]);
+
+// The system's preference decides the first paint; the attribute is what the
+// stylesheet reads, so a toggle can override it later without a reload.
+document.documentElement.dataset.theme = window.matchMedia(
+  "(prefers-color-scheme: dark)",
+).matches
+  ? "dark"
+  : "light";
 
 const root = document.getElementById("root");
 if (!root) throw new Error("index.html has no #root");
