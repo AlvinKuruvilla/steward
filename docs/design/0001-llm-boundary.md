@@ -78,11 +78,21 @@ and the full engine test suite passes against it. This is the V3 acceptance test
 uninstalling enrichment leaves Steward working, with one feature visibly absent
 and no state changed.
 
-**Database roles.** Enrichment rows live in their own Postgres schema. The role
-the engine connects as holds no privileges on it — not `SELECT`, not `USAGE`. The
-engine cannot read enrichment output even if someone writes the code to try,
-because the database refuses. This is the enforcement the move to Postgres buys,
-and it is the reason to pay for it.
+**Separate files, separate processes.** Enrichment rows live in their own SQLite
+file, written by an enrichment process and never opened by the engine's. The
+engine's connection installs an authorizer that denies `ATTACH`, so a query that
+reaches for the enrichment file fails at the statement rather than succeeding
+quietly. How the interface shows enrichment beside engine state without the
+engine reading it depends on how the window talks to the backend, which is not
+settled yet.
+
+SQLite has no roles, so none of this is the database refusing. The engine process
+could open the file if someone wrote the code to; the authorizer is installed by
+the code it restricts. What stops that code is the import contract above and a
+reviewer reading a diff that names the enrichment file. Until 2026-09-23 this was
+a Postgres schema the engine's role held no grant on, which the database
+enforced; the move to a desktop app gave that up, for the reasons in
+[`ROADMAP.md`](../../ROADMAP.md).
 
 **Types.** Enrichment output is `Unverified[T]`, and nothing in the engine's
 signatures accepts one. `mypy --strict` rejects the call at the point someone
@@ -153,10 +163,16 @@ derivable from events, so Steward will show `UNKNOWN` where a competitor shows a
 confident label. The competitor's label will be wrong some fraction of the time
 and nobody will know which fraction.
 
-**The boundary costs real engineering.** A separate Postgres role, a separate
-package, an import contract, a dependency group, a type wrapper. Every one is a
-thing to maintain; a cheaper project would write the rule in a README and trust
-code review.
+**The boundary costs real engineering.** A separate process and database file, a
+separate package, an import contract, a dependency group, a type wrapper. Every
+one is a thing to maintain; a cheaper project would write the rule in a README and
+trust code review.
+
+**Nothing outside the code enforces it.** The Postgres role was the one layer the
+engine's own code could not switch off, and SQLite has nothing to replace it
+with. Every remaining layer is checked by CI or by review, so a determined
+change can cross the boundary in one diff. It will at least be a diff that says
+so.
 
 It is paid because the boundary is the product. An AI reviewer that is right 95%
 of the time is a supply-chain incident with a 5% rate. A deterministic engine that

@@ -17,26 +17,39 @@ can be re-measured.
 | V1 surface | pull requests | Chosen over issues-first. The consequence is in *Validation* below. |
 | Backend | Python | Start here; swap the engine for something faster if a profile demands it. |
 | GitHub API | REST, via `githubkit` | GraphQL was built and removed. REST names the team on a review request, which GraphQL nulls; it costs `willCloseTarget` and an id on cross-references. |
-| Store | PostgreSQL | Replaces the local-first SQLite shape. See *The shape this implies*. |
-| Deployment | self-hosted, `docker compose up` | CLI plus a local web UI, both talking to your own Postgres. |
+| Store | SQLite | Replaced PostgreSQL on 2026-09-23. See *Why SQLite and a desktop app*. |
+| Deployment | desktop app, Tauri | One installer. No CLI and no browser build: syncing, the raw event stream and the debug log live in the app. |
 | LLM policy | hard architectural boundary | [`docs/design/0001-llm-boundary.md`](docs/design/0001-llm-boundary.md) |
 | Look | OpenWork's surface, GitHub's density | [`docs/design/0002-visual-language.md`](docs/design/0002-visual-language.md) |
 
-### What Postgres costs
+### Why SQLite and a desktop app
 
-Picking Postgres retires "local-first". What survives is the CLI, the local web
-UI, single-operator ownership of the data, and GitHub as the only source of
-truth. What dies is `brew install && run` — Steward now has a service
-dependency, so the install story is a compose file.
+V0 shipped on Postgres behind `docker compose up`. The desktop app needs what a
+compose file cannot give: an install with no Docker, an icon, the OS keychain for
+the GitHub token, and a notification when a CI run the maintainer approved
+finishes.
 
-The invariant that made SQLite attractive is the one thing that must not be lost
-in the move:
+Bundling a Postgres server into the app was the alternative. Few shipped desktop
+apps do it; the common shapes are a thin client over a hosted server, or SQLite
+locally with Postgres as a server option (n8n, Grafana, Gitea). Steward has no
+data a user can lose: every event can be fetched from GitHub again, and every
+derived table rebuilt by replay. That removes the usual reason to fear a database
+file on a user's disk.
+
+What Postgres enforced and SQLite cannot is the role boundary in
+[`0001`](docs/design/0001-llm-boundary.md): the engine's login held no grant on
+the enrichment schema. That boundary already had a hole, since the process
+serving the engine also held the migration credential. It now rests on a process
+boundary and the import contract, and `0001` says so.
+
+The invariant carries over unchanged:
 
     drop every derived table, replay the event log, get byte-identical state
 
-Postgres keeps that invariant; it just does not hand it to you for free the way a
-single deletable file did. V0 has to prove it, and V1 has to keep proving it in
-CI, or it quietly stops being true.
+V1 has to keep proving it in CI.
+
+Open: how the window talks to the Python backend. Loopback HTTP with a
+per-launch token, a sidecar over stdio, or Python in-process through PyTauri.
 
 ---
 
@@ -133,17 +146,18 @@ Every state carries its derivation class, and the UI never blurs them:
 
 ### Surfaces
 
-- `steward inbox` — unresolved items where you are the blocked-on actor, oldest
-  first.
-- `steward pr <n>` — state, the timeline that produced it, and the evidence for
-  the current state.
-- `steward why <n>` — the derivation, one line per event, each pointing at the
-  GitHub object it came from.
-- Web UI: repo switcher, inbox, PR detail. Every rendered claim links to the
-  event behind it.
+All in the app; every rendered claim links to the event behind it.
+
+- Repo switcher, and sync with progress and cancel.
+- Inbox — unresolved items where you are the blocked-on actor, oldest first.
+- PR detail — state, the timeline that produced it, and the evidence for the
+  current state.
+- Derivation — one line per event, each pointing at the GitHub object it came
+  from.
+- Raw events — the stream for one PR, oldest first, as stored.
 
 **Acceptance.** Run against all five corpus repositories through the normal
-`steward sync` path:
+sync path:
 
 | repo | deterministic coverage of open PRs, with policy |
 |---|---|
@@ -270,7 +284,7 @@ would end up as another dashboard.
 ## Validation
 
 Steward is tested by being used. There is no fixture loader and no hand-written
-event JSON: tests drive `steward sync` and then assert on what a maintainer would
+event JSON: tests drive the sync and then assert on what a maintainer would
 see. Five repositories are the test suite, each admitted because it fails
 differently from the others — ruff presses every button, tokio presses almost
 none, kubernetes keeps its state in bot labels, home-assistant runs an enormous
@@ -280,7 +294,7 @@ each one catches, and what the corpus still has no example of are in
 
 The one concession to CI: HTTP is recorded and replayed at the socket, so runs
 are hermetic and offline. The normalizer's tests already work this way, through
-`httpx.MockTransport`; what is missing is `steward sync` recording its own.
+`httpx.MockTransport`; what is missing is the sync recording its own.
 Everything above the socket — pagination, normalisation, the fold, the policy
 layer, the queries — is the production path.
 Cassettes are refreshed on a schedule, and a refresh that changes a coverage
