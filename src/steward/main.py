@@ -1,23 +1,21 @@
-"""The command line.
+"""The backend's entry point.
 
-Three commands, and two connection strings. `migrate` uses
-`STEWARD_ADMIN_DATABASE_URL`, which carries `role=steward_owner`; everything
-else uses `STEWARD_DATABASE_URL`, which is the engine and cannot create tables.
+One command. Syncing and reading the log happen in the interface; this starts
+the server the interface talks to. The database is `steward.db` in the data
+directory, which the desktop app passes explicitly and which otherwise defaults
+to the same place the app would choose.
 """
 
 from __future__ import annotations
 
-import asyncio
 import os
 import sys
-from typing import Annotated, Any
+from pathlib import Path
+from typing import Annotated
 
-import psycopg
 import typer
 
-from steward import sync as steward_sync
-from steward.migrate import apply
-from steward.model import EventKind
+from steward.migrate import default_data_dir
 
 app = typer.Typer(
     add_completion=False,
@@ -26,96 +24,31 @@ app = typer.Typer(
 )
 
 
-def _require(name: str) -> str:
-    value = os.environ.get(name)
-    if not value:
-        raise typer.BadParameter(f"{name} is not set", param_hint=name)
-    return value
-
-
-def _split(repository: str) -> tuple[str, str]:
-    owner, _, name = repository.partition("/")
-    if not owner or not name:
-        raise typer.BadParameter(f"expected owner/repo, got {repository!r}")
-    return owner, name
-
-
-def _connect(url: str) -> psycopg.Connection[Any]:
-    try:
-        return psycopg.connect(url)
-    except psycopg.OperationalError as err:
-        raise typer.Exit(2) from err
-
-
-@app.command()
-def migrate() -> None:
-    """Apply any migrations the database has not seen."""
-    with _connect(_require("STEWARD_ADMIN_DATABASE_URL")) as conn:
-        applied = apply(conn)
-    for migration in applied:
-        typer.echo(f"applied {migration.version:04d}_{migration.name}")
-    if not applied:
-        typer.echo("up to date")
-
-
-@app.command()
-def sync(repository: Annotated[str, typer.Argument(help="owner/repo")]) -> None:
-    """Read a repository's pull request history into the log."""
-    owner, name = _split(repository)
-    progress = asyncio.run(
-        steward_sync.run(
-            owner,
-            name,
-            token=_require("GITHUB_TOKEN"),
-            database_url=_require("STEWARD_DATABASE_URL"),
-        )
-    )
-    if progress.error:
-        typer.echo(progress.error, err=True)
-        raise typer.Exit(1)
-    typer.echo(f"{repository}: {progress.new} new, {progress.seen} already recorded")
-
-
-@app.command()
-def events(
-    repository: Annotated[str, typer.Argument(help="owner/repo")],
-    number: Annotated[int, typer.Argument(help="pull request number")],
-) -> None:
-    """Print one pull request's event stream, oldest first."""
-    owner, name = _split(repository)
-    with _connect(_require("STEWARD_DATABASE_URL")) as conn:
-        rows = conn.execute(
-            "SELECT e.occurred_at, e.kind, e.actor, e.payload "
-            "FROM events e JOIN repositories r ON r.id = e.repo_id "
-            "WHERE r.owner = %s AND r.name = %s "
-            "AND e.subject_type = 'pull_request' AND e.subject_number = %s "
-            "ORDER BY e.occurred_at, e.kind <> %s",
-            (owner, name, number, EventKind.OPENED.value),
-        ).fetchall()
-
-    if not rows:
-        typer.echo(f"no events for {repository}#{number}", err=True)
-        raise typer.Exit(1)
-    for occurred_at, kind, actor, payload in rows:
-        detail = " ".join(f"{k}={v}" for k, v in sorted(payload.items()))
-        typer.echo(
-            f"{occurred_at:%Y-%m-%d %H:%M}  {kind:<22} {actor or '-':<20} {detail}"
-        )
+# A callback, so a single command stays `steward serve` instead of Typer
+# collapsing it into bare `steward`.
+@app.callback()
+def _root() -> None:
+    pass
 
 
 @app.command()
 def serve(
+    data_dir: Annotated[
+        Path | None,
+        typer.Option(help="directory holding steward.db [default: the app's own]"),
+    ] = None,
     host: Annotated[str, typer.Option(help="interface to bind")] = "127.0.0.1",
     port: Annotated[int, typer.Option(help="port to bind")] = 8000,
 ) -> None:
     """Serve the API, and the interface if it has been built."""
     import uvicorn
 
-    _require("STEWARD_DATABASE_URL")
+    # uvicorn imports the app by name, so the choice reaches it through the
+    # environment rather than an argument.
+    os.environ["STEWARD_DATA_DIR"] = str(data_dir or default_data_dir())
     if host not in ("127.0.0.1", "localhost", "::1"):
-        # Nothing authenticates a request. Inside a container this is how the
-        # port mapping reaches it, and compose publishes that mapping on
-        # loopback; anywhere else it puts the log on the network.
+        # Nothing authenticates a request, so anywhere but loopback this puts
+        # the log on the network.
         typer.echo(
             f"warning: binding {host}, and Steward has no authentication",
             err=True,

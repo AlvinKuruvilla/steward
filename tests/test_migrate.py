@@ -1,17 +1,36 @@
-"""The migration runner, against a real database.
+"""The migration runner and the connection it runs on.
 
-What is being checked is ownership and role behaviour, which only Postgres can
-answer. The database comes from `conftest.py`, which skips when none is up.
+Each test gets a fresh database file under `tmp_path`, so nothing here can touch
+a database a developer has synced into.
 """
 
 from __future__ import annotations
 
-from typing import Any
+import sqlite3
+from collections.abc import Iterator
+from pathlib import Path
 
-import psycopg
 import pytest
 
-from steward.migrate import MigrationError, apply, migrations
+import steward.migrate
+from steward.migrate import Migration, MigrationError, apply, connect, migrations
+
+
+@pytest.fixture
+def conn(tmp_path: Path) -> Iterator[sqlite3.Connection]:
+    conn = connect(tmp_path / "steward.db")
+    yield conn
+    conn.close()
+
+
+def _tables(conn: sqlite3.Connection) -> set[str]:
+    return {
+        row[0]
+        for row in conn.execute(
+            "SELECT name FROM sqlite_schema "
+            "WHERE type = 'table' AND name NOT LIKE 'sqlite_%'"
+        )
+    }
 
 
 def test_migrations_are_numbered_and_ordered() -> None:
@@ -21,78 +40,63 @@ def test_migrations_are_numbered_and_ordered() -> None:
     assert found[0].version == 1
 
 
-def test_apply_creates_the_schema(admin: psycopg.Connection[Any]) -> None:
-    ran = apply(admin)
+def test_apply_creates_the_schema(conn: sqlite3.Connection) -> None:
+    ran = apply(conn)
 
     assert [m.version for m in ran] == [m.version for m in migrations()]
-    tables = {
-        row[0]
-        for row in admin.execute(
-            "SELECT tablename FROM pg_tables WHERE schemaname = 'public'"
-        ).fetchall()
-    }
-    assert tables == {"events", "repositories", "schema_migrations"}
+    assert _tables(conn) == {"events", "repositories", "schema_migrations"}
 
 
-def test_apply_is_idempotent(admin: psycopg.Connection[Any]) -> None:
-    apply(admin)
-    assert apply(admin) == []
+def test_apply_is_idempotent(conn: sqlite3.Connection) -> None:
+    apply(conn)
+    assert apply(conn) == []
 
 
-def test_tables_are_owned_by_the_owner_role(admin: psycopg.Connection[Any]) -> None:
-    # The reason the admin URL carries `role=steward_owner`. Owned by anyone
-    # else, and ALTER DEFAULT PRIVILEGES never fires.
-    apply(admin)
-    owners = {
-        row[0]
-        for row in admin.execute(
-            "SELECT DISTINCT tableowner FROM pg_tables WHERE schemaname = 'public'"
-        ).fetchall()
-    }
-    assert owners == {"steward_owner"}
+def test_connect_turns_on_what_sqlite_leaves_off(conn: sqlite3.Connection) -> None:
+    # Both are per-connection or per-file settings that SQLite defaults the
+    # other way, and both are silently skipped if set inside a transaction.
+    assert conn.execute("PRAGMA foreign_keys").fetchone() == (1,)
+    assert conn.execute("PRAGMA journal_mode").fetchone() == ("wal",)
 
 
-def test_the_engine_can_read_what_was_migrated(admin: psycopg.Connection[Any]) -> None:
-    apply(admin)
-    for table in ("events", "repositories"):
-        assert admin.execute(
-            "SELECT has_table_privilege('steward_engine', %s, 'SELECT')", (table,)
-        ).fetchone() == (True,)
+def test_attach_is_refused(conn: sqlite3.Connection, tmp_path: Path) -> None:
+    # The engine's side of the enrichment boundary in 0001-llm-boundary.md.
+    with pytest.raises(sqlite3.DatabaseError, match="not authorized"):
+        conn.execute("ATTACH ? AS enrichment", (str(tmp_path / "enrichment.db"),))
 
 
-def test_the_engine_still_cannot_reach_enrichment(
-    admin: psycopg.Connection[Any],
+def test_a_failed_migration_leaves_nothing_behind(
+    conn: sqlite3.Connection, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    apply(admin)
-    assert admin.execute(
-        "SELECT has_schema_privilege('steward_engine', 'enrichment', 'USAGE')"
-    ).fetchone() == (False,)
+    # executescript() and a transaction interact differently in each of
+    # sqlite3's autocommit modes; in the wrong one, the table created before the
+    # failure survives and the next run trips over it.
+    broken = Migration(
+        1, "broken", "CREATE TABLE half (id INTEGER); INSERT INTO missing VALUES (1);"
+    )
+    monkeypatch.setattr(steward.migrate, "migrations", lambda: [broken])
+
+    with pytest.raises(sqlite3.OperationalError, match="no such table: missing"):
+        apply(conn)
+
+    assert _tables(conn) == {"schema_migrations"}
+    assert conn.execute("SELECT count(*) FROM schema_migrations").fetchone() == (0,)
 
 
-def test_an_edited_migration_is_refused(admin: psycopg.Connection[Any]) -> None:
-    apply(admin)
-    with admin.transaction():
-        admin.execute("UPDATE schema_migrations SET checksum = 'tampered'")
+def test_an_edited_migration_is_refused(conn: sqlite3.Connection) -> None:
+    apply(conn)
+    conn.execute("UPDATE schema_migrations SET checksum = 'tampered'")
+    conn.commit()
     with pytest.raises(MigrationError, match="has changed since it was applied"):
-        apply(admin)
+        apply(conn)
 
 
-def test_a_migration_the_build_lacks_is_refused(admin: psycopg.Connection[Any]) -> None:
-    apply(admin)
-    with admin.transaction():
-        admin.execute(
-            "INSERT INTO schema_migrations (version, name, checksum) "
-            "VALUES (9999, 'from_the_future', 'x')"
-        )
+def test_a_migration_the_build_lacks_is_refused(conn: sqlite3.Connection) -> None:
+    apply(conn)
+    conn.execute(
+        "INSERT INTO schema_migrations (version, name, checksum) "
+        "VALUES (9999, 'from_the_future', 'x')"
+    )
+    conn.commit()
     with pytest.raises(MigrationError, match="migrations this build does not"):
-        apply(admin)
-
-
-def test_the_wrong_role_is_refused(database: str) -> None:
-    # The same credential without the role switch, which is the misconfiguration
-    # that would otherwise migrate successfully and grant the engine nothing.
-    with (
-        psycopg.connect(database.split("?")[0]) as conn,
-        pytest.raises(MigrationError, match="not steward_owner"),
-    ):
         apply(conn)

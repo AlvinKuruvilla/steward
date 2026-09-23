@@ -8,14 +8,13 @@ and the difference is the product.
 from __future__ import annotations
 
 import os
+import sqlite3
 from collections.abc import AsyncIterator, Iterator
-from contextlib import asynccontextmanager, contextmanager
+from contextlib import asynccontextmanager, closing, contextmanager
 from datetime import datetime
 from pathlib import Path
-from typing import Any
 from urllib.parse import parse_qsl, urlencode, urlsplit, urlunsplit
 
-import psycopg
 from fastapi import FastAPI, HTTPException
 from fastapi.staticfiles import StaticFiles
 from githubkit import GitHub
@@ -26,7 +25,7 @@ from starlette.responses import RedirectResponse, Response
 from starlette.types import Scope
 
 from steward import sync
-from steward.migrate import apply
+from steward.migrate import DATABASE, apply, connect, default_data_dir
 from steward.model import Event, payload_to_dict
 from steward.state import (
     BlockedOn,
@@ -42,11 +41,9 @@ from steward.store import read_events, repositories
 @asynccontextmanager
 async def lifespan(_: FastAPI) -> AsyncIterator[None]:
     """Bring the schema up to date, so starting the app is the whole install."""
-    admin = os.environ.get("STEWARD_ADMIN_DATABASE_URL")
-    if admin:
-        with psycopg.connect(admin) as conn:
-            for migration in apply(conn):
-                print(f"applied {migration.version:04d}_{migration.name}")
+    with closing(connect(_database())) as conn:
+        for migration in apply(conn):
+            print(f"applied {migration.version:04d}_{migration.name}")
     yield
 
 
@@ -123,13 +120,20 @@ class PullRequest(BaseModel):
     events: list[Moment]
 
 
+def _database() -> Path:
+    """The database file. `steward serve` sets the directory before starting."""
+    return Path(os.environ.get("STEWARD_DATA_DIR") or default_data_dir()) / DATABASE
+
+
 @contextmanager
-def _connect() -> Iterator[psycopg.Connection[Any]]:
-    """The engine's connection, which can read the log and not create tables."""
-    url = os.environ.get("STEWARD_DATABASE_URL")
-    if not url:
-        raise HTTPException(500, "STEWARD_DATABASE_URL is not set")
-    with psycopg.connect(url) as conn:
+def _connect() -> Iterator[sqlite3.Connection]:
+    """A connection for one request, closed when it ends.
+
+    Opened per request rather than shared: a sqlite3 read holds its snapshot
+    until the transaction ends, and a connection kept open across requests
+    would keep the write-ahead log from ever being checkpointed.
+    """
+    with closing(connect(_database())) as conn:
         yield conn
 
 
@@ -283,11 +287,7 @@ async def add_repository(body: AddRepository) -> Repository:
     token = os.environ.get("GITHUB_TOKEN")
     if not token:
         raise HTTPException(500, "GITHUB_TOKEN is not set")
-    database_url = os.environ.get("STEWARD_DATABASE_URL")
-    if not database_url:
-        raise HTTPException(500, "STEWARD_DATABASE_URL is not set")
-
-    state = sync.start(body.owner, body.name, token=token, database_url=database_url)
+    state = sync.start(body.owner, body.name, token=token, database=_database())
     return Repository(
         owner=state.owner,
         name=state.name,

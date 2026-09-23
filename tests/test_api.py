@@ -1,6 +1,6 @@
 """The JSON the interface reads.
 
-Skips unless `STEWARD_ADMIN_DATABASE_URL` is set. Events come from the recorded
+Events come from the recorded
 response, so what these assert is the API's shape over known events rather than
 whatever a repository happens to look like today.
 """
@@ -8,16 +8,14 @@ whatever a repository happens to look like today.
 from __future__ import annotations
 
 import json
-import os
 import re
+import sqlite3
 from collections.abc import Iterator
 from pathlib import Path
 from typing import Any
 
 import httpx
-import psycopg
 import pytest
-from conftest import ENGINE_URL
 from fastapi.testclient import TestClient
 from githubkit import GitHub
 
@@ -30,7 +28,9 @@ TIMELINE = re.compile(r"^/repos/precogly/precogly/issues/(\d+)/timeline$")
 
 
 @pytest.fixture
-def client(engine: psycopg.Connection[Any]) -> Iterator[TestClient]:
+def client(
+    db: sqlite3.Connection, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> Iterator[TestClient]:
     recorded = json.loads(FIXTURE.read_text())
 
     def replay(request: httpx.Request) -> httpx.Response:
@@ -42,12 +42,12 @@ def client(engine: psycopg.Connection[Any]) -> Iterator[TestClient]:
 
     gh: GitHub[Any] = GitHub("recorded", transport=httpx.MockTransport(replay))
 
-    repo = repository_id(engine, "precogly", "precogly", "R_kgDOabc")
+    repo = repository_id(db, "precogly", "precogly", "R_kgDOabc")
     for pr in gh.rest.pulls.list(
         owner="precogly", repo="precogly", state="all", per_page=26
     ).parsed_data:
         write(
-            engine,
+            db,
             repo,
             events_for_pull_request(
                 pr,
@@ -60,8 +60,8 @@ def client(engine: psycopg.Connection[Any]) -> Iterator[TestClient]:
             ),
         )
 
-    # The app reads this when it connects, and it must be the test database.
-    os.environ["STEWARD_DATABASE_URL"] = ENGINE_URL
+    # The app opens steward.db in this directory, which is the file `db` holds.
+    monkeypatch.setenv("STEWARD_DATA_DIR", str(tmp_path))
     yield TestClient(app)
 
 

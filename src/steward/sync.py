@@ -7,14 +7,16 @@ going", so progress is kept here rather than in either caller.
 from __future__ import annotations
 
 import asyncio
+from contextlib import closing
 from dataclasses import dataclass
 from datetime import UTC, datetime
+from pathlib import Path
 
-import psycopg
 from githubkit import GitHub
 from githubkit.throttling import LocalThrottler
 
 from steward import fetch, store
+from steward.migrate import connect
 
 
 @dataclass
@@ -49,7 +51,7 @@ def everything() -> list[Progress]:
     return list(_progress.values())
 
 
-async def run(owner: str, name: str, *, token: str, database_url: str) -> Progress:
+async def run(owner: str, name: str, *, token: str, database: Path) -> Progress:
     """Read a repository's history into the log, start to finish."""
     state = _progress.setdefault(
         (owner, name), Progress(owner=owner, name=name, started_at=datetime.now(UTC))
@@ -57,7 +59,9 @@ async def run(owner: str, name: str, *, token: str, database_url: str) -> Progre
     try:
         async with GitHub(token, throttler=LocalThrottler(fetch.CONCURRENCY)) as gh:
             repository = await gh.rest.repos.async_get(owner=owner, repo=name)
-            with psycopg.connect(database_url) as conn:
+            # closing(), not the connection's own `with`: on sqlite3 that
+            # commits and leaves the connection open.
+            with closing(connect(database)) as conn:
                 repo_id = store.repository_id(
                     conn, owner, name, repository.parsed_data.node_id
                 )
@@ -76,7 +80,7 @@ async def run(owner: str, name: str, *, token: str, database_url: str) -> Progre
     return state
 
 
-def start(owner: str, name: str, *, token: str, database_url: str) -> Progress:
+def start(owner: str, name: str, *, token: str, database: Path) -> Progress:
     """Begin a sync in the background, or return the one already running."""
     key = (owner, name)
     existing = _progress.get(key)
@@ -85,7 +89,5 @@ def start(owner: str, name: str, *, token: str, database_url: str) -> Progress:
 
     state = Progress(owner=owner, name=name, started_at=datetime.now(UTC))
     _progress[key] = state
-    _tasks[key] = asyncio.create_task(
-        run(owner, name, token=token, database_url=database_url)
-    )
+    _tasks[key] = asyncio.create_task(run(owner, name, token=token, database=database))
     return state

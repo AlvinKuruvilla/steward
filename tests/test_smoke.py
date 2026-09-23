@@ -19,9 +19,7 @@ def test_no_arguments_prints_help() -> None:
     assert main([]) == 2
 
 
-def test_a_repository_must_be_owner_slash_repo() -> None:
-    assert main(["sync", "precogly"]) == 2
-
-
-def test_sync_without_a_token_is_an_error() -> None:
-    assert main(["sync", "precogly/precogly"]) == 2
+def test_serve_is_still_a_subcommand() -> None:
+    # The desktop app starts the backend as `steward serve`. With one command,
+    # Typer would otherwise accept only bare `steward`.
+    assert main(["serve", "--help"]) == 0

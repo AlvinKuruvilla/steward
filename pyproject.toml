@@ -15,7 +15,6 @@ dependencies = [
     "fastapi>=0.141.1",
     "githubkit>=0.16.1",
     "httpx>=0.28.1",
-    "psycopg[binary,pool]>=3.3.6",
     "pydantic>=2.13.5",
     "typer>=0.27.2",
     "uvicorn[standard]>=0.53.0",
