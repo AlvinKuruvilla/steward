@@ -25,6 +25,7 @@ from steward.store import repository_id, write
 
 FIXTURE = Path(__file__).parent / "data" / "precogly_rest_timeline.json"
 TIMELINE = re.compile(r"^/repos/precogly/precogly/issues/(\d+)/timeline$")
+TOKEN = "launch-token"
 
 
 @pytest.fixture
@@ -62,7 +63,40 @@ def client(
 
     # The app opens steward.db in this directory, which is the file `db` holds.
     monkeypatch.setenv("STEWARD_DATA_DIR", str(tmp_path))
-    yield TestClient(app)
+    monkeypatch.setenv("STEWARD_API_TOKEN", TOKEN)
+    yield TestClient(app, headers={"authorization": f"Bearer {TOKEN}"})
+
+
+def test_a_request_without_the_token_is_refused(client: TestClient) -> None:
+    bare = TestClient(app)
+    assert bare.get("/api/repositories").status_code == 401
+    wrong = TestClient(app, headers={"authorization": "Bearer guessed"})
+    assert wrong.get("/api/repositories").status_code == 401
+
+
+def test_an_unset_token_refuses_everything(
+    client: TestClient, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    # Unset must not mean "no check": an empty expected token would otherwise
+    # match `Bearer ` with nothing after it.
+    monkeypatch.delenv("STEWARD_API_TOKEN")
+    empty = TestClient(app, headers={"authorization": "Bearer "})
+    assert empty.get("/api/repositories").status_code == 401
+
+
+def test_a_preflight_needs_no_token(client: TestClient) -> None:
+    # Browsers send the OPTIONS preflight without credentials, so a preflight
+    # that demanded the token would block every real request behind it.
+    response = TestClient(app).options(
+        "/api/repositories",
+        headers={
+            "origin": "tauri://localhost",
+            "access-control-request-method": "GET",
+            "access-control-request-headers": "authorization",
+        },
+    )
+    assert response.status_code == 200
+    assert response.headers["access-control-allow-origin"] == "tauri://localhost"
 
 
 def test_repositories_lists_what_was_synced(client: TestClient) -> None:

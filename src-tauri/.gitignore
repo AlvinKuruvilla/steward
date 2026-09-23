@@ -1,0 +1,3 @@
+/target/
+# Regenerated from capabilities/ on every build.
+/gen/schemas/

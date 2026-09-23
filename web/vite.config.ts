@@ -9,8 +9,12 @@ export default defineConfig({
   resolve: {
     alias: { "@": path.resolve(import.meta.dirname, "./src") },
   },
+  // `tauri dev` loads the interface from here. The port is fixed because
+  // src-tauri/tauri.conf.json names it and the API's CORS list allows it.
   server: {
-    // The Python API. Only /api is proxied, so the SPA owns every other path.
-    proxy: { "/api": "http://127.0.0.1:8000" },
+    port: 5173,
+    strictPort: true,
   },
+  // Vite would clear Rust's compiler output off the terminal it shares.
+  clearScreen: false,
 });

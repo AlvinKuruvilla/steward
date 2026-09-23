@@ -48,8 +48,11 @@ The invariant carries over unchanged:
 
 V1 has to keep proving it in CI.
 
-Open: how the window talks to the Python backend. Loopback HTTP with a
-per-launch token, a sidecar over stdio, or Python in-process through PyTauri.
+The window talks to the Python backend over loopback HTTP, with a token made
+fresh at each launch. A sidecar over stdio would have needed no port and no
+token, at the cost of rewriting the API as a dispatcher; PyTauri, Python in the
+shell's own process, was unmaintained (no commit since 2025-09-10, a pyo3
+security fix unmerged, macOS standalone builds reported broken).
 
 ---
 

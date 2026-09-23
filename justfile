@@ -12,13 +12,14 @@ data_dir := "tmp/data"
 default:
     @just --list
 
-# The API, migrating on start. Add and sync repositories from the interface.
-serve:
-    GITHUB_TOKEN={{github_token}} uv run steward serve --data-dir {{data_dir}}
+# The desktop app, with hot reload. The shell starts the backend from this
+# repository with its database in tmp/data.
+dev:
+    GITHUB_TOKEN={{github_token}} web/node_modules/.bin/tauri dev
 
-# Vite with hot reload, proxying /api to `just serve`.
-web:
-    cd web && pnpm dev
+# The API alone on port 8000, for curl. Requests need `Authorization: Bearer dev`.
+serve:
+    GITHUB_TOKEN={{github_token}} STEWARD_API_TOKEN=dev uv run steward serve --data-dir {{data_dir}} --port 8000
 
 # A SQLite shell on the development database, for reading the log directly.
 db:
@@ -39,7 +40,9 @@ check:
     uv run mypy tests
     uv run pytest -q
     cd web && pnpm exec tsc --noEmit -p tsconfig.app.json
+    cd src-tauri && cargo fmt --check && cargo clippy --all-targets -- -D warnings
 
 fix:
     uv run ruff format src tests
     uv run ruff check --fix src tests
+    cd src-tauri && cargo fmt

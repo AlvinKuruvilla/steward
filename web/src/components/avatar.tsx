@@ -5,8 +5,15 @@
  * covers people and not GitHub Apps, whose login carries a `[bot]` suffix that
  * belongs to no account -- and `github-actions` has no user page at all.
  * Initials when the account is gone or the lookup fails.
+ *
+ * The API answers with the URL rather than redirecting to it: an <img> request
+ * cannot carry the backend's token, so the lookup goes through `get` and the
+ * <img> points at GitHub's CDN directly.
  */
+import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
+
+import { get } from "@/api";
 
 export function Avatar({
   login,
@@ -16,8 +23,18 @@ export function Avatar({
   size?: number;
 }) {
   const [broken, setBroken] = useState(false);
+  const avatar = useQuery({
+    queryKey: ["avatar", login],
+    queryFn: () =>
+      get<{ url: string }>(`/api/avatars/${encodeURIComponent(login!)}`),
+    enabled: login !== null,
+    // An avatar moves rarely, and the API caches it for the life of the
+    // process anyway.
+    staleTime: Infinity,
+    retry: false,
+  });
 
-  if (!login || broken) {
+  if (!login || broken || avatar.isError || !avatar.data) {
     return (
       <span
         aria-hidden
@@ -31,7 +48,7 @@ export function Avatar({
 
   return (
     <img
-      src={`/api/avatars/${encodeURIComponent(login)}`}
+      src={avatar.data.url}
       alt=""
       width={size}
       height={size}

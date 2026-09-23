@@ -16,10 +16,9 @@ stream and tells a maintainer what is waiting on whom, with the events that say
 so.
 
 > [!NOTE]
-> Early development, and becoming a desktop app; [`ROADMAP.md`](ROADMAP.md)
-> says why. The backend is on SQLite and the desktop shell is not built yet, so
-> for now the interface runs in a browser against `127.0.0.1:8000` (see
-> *Development*). Nothing authenticates a request, so keep it on loopback.
+> Early development. Steward is a desktop app that runs from this repository
+> with `just dev`; there is no packaged build yet. [`ROADMAP.md`](ROADMAP.md)
+> says what each version has to prove.
 
 ## Why
 
@@ -52,16 +51,20 @@ Each answer says where it came from: `EVENT` when the events alone decide it,
 
 ## Development
 
-Requires Python 3.13, [uv](https://docs.astral.sh/uv/), pnpm and
-[just](https://just.systems). The desktop shell is not built yet; until it is,
-the interface runs in a browser against the API.
+Requires Python 3.13, [uv](https://docs.astral.sh/uv/), Rust, pnpm and
+[just](https://just.systems).
 
 ```sh
-just serve          # the API on 127.0.0.1:8000, with its database in tmp/data
-just web            # the interface, with hot reload; add a repository from it
-just check          # format, lint, types, tests
+just dev            # the app, with hot reload; its database is in tmp/data
+just check          # format, lint, types, tests, in Python, Rust and TypeScript
 just db             # a SQLite shell on the development database
+just serve          # the API alone on 127.0.0.1:8000, token `dev`, for curl
 ```
+
+The window is a Tauri shell (`src-tauri/`) around the interface (`web/`). It
+starts the Python backend as a child process on a loopback port the kernel
+picks, with a token made fresh at each launch that every request must carry;
+`src-tauri/src/main.rs` has the handshake.
 
 Tests replay a recorded GitHub response through `httpx.MockTransport`, so they
 need no network and no token. Each one gets its own database file, so

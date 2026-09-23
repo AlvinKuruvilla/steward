@@ -3,23 +3,31 @@
 Every response carries the derivation class alongside the state. A caller that
 cannot tell an EVENT from a POLICY from an UNKNOWN cannot render the difference,
 and the difference is the product.
+
+Every /api request carries `Authorization: Bearer <STEWARD_API_TOKEN>`. The
+server listens on loopback, and loopback is shared with every other process on
+the machine; the token, which the desktop app makes fresh at each launch, is
+what tells its window apart from them.
 """
 
 from __future__ import annotations
 
+import hmac
 import os
 import sqlite3
-from collections.abc import AsyncIterator, Iterator
+import sys
+from collections.abc import AsyncIterator, Awaitable, Callable, Iterator
 from contextlib import asynccontextmanager, closing, contextmanager
 from datetime import datetime
 from pathlib import Path
 from urllib.parse import parse_qsl, urlencode, urlsplit, urlunsplit
 
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Request, Response
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
 from githubkit import GitHub
 from githubkit.exception import RequestFailed
 from pydantic import BaseModel
-from starlette.responses import RedirectResponse
 
 from steward import sync
 from steward.migrate import DATABASE, apply, connect, default_data_dir
@@ -40,15 +48,56 @@ async def lifespan(_: FastAPI) -> AsyncIterator[None]:
     """Bring the schema up to date, so starting the app is the whole install."""
     with closing(connect(_database())) as conn:
         for migration in apply(conn):
-            print(f"applied {migration.version:04d}_{migration.name}")
+            # stderr: stdout carries the handshake the desktop app reads.
+            print(f"applied {migration.version:04d}_{migration.name}", file=sys.stderr)
     yield
 
 
+# No /api/docs: it is a page for a browser, and a browser cannot send the token.
+# The schema is still at /api/openapi.json, for anything that can.
 app = FastAPI(
     title="Steward",
-    docs_url="/api/docs",
+    docs_url=None,
+    redoc_url=None,
     openapi_url="/api/openapi.json",
     lifespan=lifespan,
+)
+
+
+@app.middleware("http")
+async def require_token(
+    request: Request, call_next: Callable[[Request], Awaitable[Response]]
+) -> Response:
+    """Refuse any /api request that does not carry this launch's token."""
+    if request.url.path.startswith("/api"):
+        expected = os.environ.get("STEWARD_API_TOKEN", "")
+        given = request.headers.get("authorization", "")
+        # An unset token must refuse everything rather than accept an empty
+        # header. compare_digest, so the time taken says nothing about how
+        # much of a guess was right.
+        if not expected or not hmac.compare_digest(given, f"Bearer {expected}"):
+            return JSONResponse({"detail": "missing or wrong token"}, status_code=401)
+    return await call_next(request)
+
+
+# Added after require_token, so it wraps it: a preflight OPTIONS is answered
+# here without a token, as browsers send preflights without credentials, and
+# a 401 still carries the headers that let the page read it.
+#
+# The interface's origin is tauri://localhost on macOS and Linux and
+# http://tauri.localhost on Windows; `tauri dev` serves it from Vite. CORS is
+# not what keeps other processes out -- they are not browsers and ignore it.
+# The token is.
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[
+        "tauri://localhost",
+        "http://tauri.localhost",
+        "http://localhost:5173",
+    ],
+    allow_methods=["GET", "POST"],
+    allow_headers=["authorization", "content-type"],
+    max_age=600,
 )
 
 
@@ -187,9 +236,16 @@ def _sized(url: str, pixels: int) -> str:
     return urlunsplit(parts._replace(query=urlencode(query)))
 
 
+class Avatar(BaseModel):
+    url: str
+
+
+# JSON rather than a redirect, because the interface draws avatars with <img>,
+# and an <img> request cannot carry the token. The interface asks here with the
+# token and points the <img> at GitHub's CDN.
 @app.get("/api/avatars/{login}")
-async def get_avatar(login: str) -> RedirectResponse:
-    """Redirect to an account's avatar, whatever kind of account it is."""
+async def get_avatar(login: str) -> Avatar:
+    """An account's avatar URL, whatever kind of account it is."""
     if login not in _avatars:
         token = os.environ.get("GITHUB_TOKEN")
         if not token:
@@ -209,12 +265,7 @@ async def get_avatar(login: str) -> RedirectResponse:
     known = _avatars[login]
     if known is None:
         raise HTTPException(404, f"no account named {login}")
-
-    # Cached hard: an avatar moves rarely, and the browser asking once per
-    # login per day is the difference between this and a rate limit.
-    return RedirectResponse(
-        known, status_code=307, headers={"cache-control": "public, max-age=86400"}
-    )
+    return Avatar(url=known)
 
 
 # Label colours, by repository. The log stores a label's name and nothing else,

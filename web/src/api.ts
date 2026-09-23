@@ -1,5 +1,7 @@
 /** The shapes /api returns. Mirrors src/steward/api.py. */
 
+import { invoke } from "@tauri-apps/api/core";
+
 export type WorkflowState =
   | "DRAFT"
   | "UNTRIAGED"
@@ -65,22 +67,33 @@ export interface PullRequest {
   events: Moment[];
 }
 
-export async function get<T>(path: string): Promise<T> {
-  const response = await fetch(path);
-  if (!response.ok) {
-    const body = (await response.json().catch(() => null)) as {
-      detail?: string;
-    } | null;
-    throw new Error(body?.detail ?? `${response.status} from ${path}`);
-  }
-  return (await response.json()) as T;
+/**
+ * Where the backend is, and the token it wants. The desktop shell starts the
+ * backend on a port the kernel picks and makes a token for this launch, so both
+ * are asked for once and then reused.
+ */
+interface Backend {
+  url: string;
+  token: string;
 }
 
-export async function post<T>(path: string, body: unknown): Promise<T> {
-  const response = await fetch(path, {
-    method: "POST",
-    headers: { "content-type": "application/json" },
-    body: JSON.stringify(body),
+let backend: Promise<Backend> | undefined;
+
+function connection(): Promise<Backend> {
+  // A failure is not kept: the shell may still be starting the backend, and
+  // the next request should ask again rather than inherit this one's error.
+  backend ??= invoke<Backend>("backend").catch((error: unknown) => {
+    backend = undefined;
+    throw error;
+  });
+  return backend;
+}
+
+async function request<T>(path: string, init: RequestInit = {}): Promise<T> {
+  const { url, token } = await connection();
+  const response = await fetch(url + path, {
+    ...init,
+    headers: { ...init.headers, authorization: `Bearer ${token}` },
   });
   if (!response.ok) {
     const problem = (await response.json().catch(() => null)) as {
@@ -89,6 +102,18 @@ export async function post<T>(path: string, body: unknown): Promise<T> {
     throw new Error(problem?.detail ?? `${response.status} from ${path}`);
   }
   return (await response.json()) as T;
+}
+
+export function get<T>(path: string): Promise<T> {
+  return request<T>(path);
+}
+
+export function post<T>(path: string, body: unknown): Promise<T> {
+  return request<T>(path, {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify(body),
+  });
 }
 
 /**
