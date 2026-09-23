@@ -1,4 +1,4 @@
-"""JSON for the interface, and the interface's own files.
+"""JSON for the interface.
 
 Every response carries the derivation class alongside the state. A caller that
 cannot tell an EVENT from a POLICY from an UNKNOWN cannot render the difference,
@@ -16,13 +16,10 @@ from pathlib import Path
 from urllib.parse import parse_qsl, urlencode, urlsplit, urlunsplit
 
 from fastapi import FastAPI, HTTPException
-from fastapi.staticfiles import StaticFiles
 from githubkit import GitHub
 from githubkit.exception import RequestFailed
 from pydantic import BaseModel
-from starlette.exceptions import HTTPException as StarletteHTTPException
-from starlette.responses import RedirectResponse, Response
-from starlette.types import Scope
+from starlette.responses import RedirectResponse
 
 from steward import sync
 from steward.migrate import DATABASE, apply, connect, default_data_dir
@@ -355,24 +352,3 @@ def get_pull(owner: str, name: str, number: int) -> PullRequest:
             for e in sorted(events, key=lambda e: e.occurred_at)
         ],
     )
-
-
-class Interface(StaticFiles):
-    """The built interface, with client-side routes falling back to index.html.
-
-    Routing lives in the browser, so /bots is not a file and never will be.
-    """
-
-    async def get_response(self, path: str, scope: Scope) -> Response:
-        try:
-            return await super().get_response(path, scope)
-        except StarletteHTTPException as missing:
-            if missing.status_code != 404:
-                raise
-            return await super().get_response("index.html", scope)
-
-
-# Mounted last, so every /api route is matched first.
-_built = Path(__file__).parent / "web"
-if _built.is_dir():
-    app.mount("/", Interface(directory=_built, html=True), name="web")

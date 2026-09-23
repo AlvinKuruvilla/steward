@@ -1,8 +1,0 @@
-*
-!pyproject.toml
-!uv.lock
-!README.md
-!src
-!web
-web/node_modules
-web/dist

@@ -103,14 +103,6 @@ def test_an_unsynced_repository_is_not_found(client: TestClient) -> None:
     assert client.get("/api/repositories/astral-sh/ruff/pulls").status_code == 404
 
 
-def test_client_routes_fall_back_to_the_interface(client: TestClient) -> None:
-    # Routing lives in the browser, so /bots is not a file on disk.
-    response = client.get("/bots")
-    assert response.status_code in {200, 404}
-    if response.status_code == 200:
-        assert response.headers["content-type"].startswith("text/html")
-
-
 @pytest.mark.parametrize(
     ("url", "expected"),
     [

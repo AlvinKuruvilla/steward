@@ -30,13 +30,15 @@ Working notes. Deliverables and their acceptance bars live in `ROADMAP.md`.
 - Changing what an event carries needs the log rebuilt, not re-synced. Writes
   are `ON CONFLICT DO NOTHING` on the source id, so an existing row keeps its
   old payload: adding the title to OPENED left every already-synced pull
-  request without one until the events were dropped and read again.
+  request without one until the events were dropped and read again. The
+  append-only triggers now refuse that drop, so rebuilding means deleting the
+  database file (`just clean`) and syncing again.
 
 ## Decisions still open
 
 - Whether Steward writes to GitHub at all. Acting on its own is ruled out;
-  human-initiated writes are not. It decides whether the token, `steward.toml`
-  and the compose file ever carry a write scope, so it is cheaper to settle
+  human-initiated writes are not. It decides whether the token and `steward.toml`
+  ever carry a write scope, so it is cheaper to settle
   before V1 ships a UI with buttons on it.
 - Whether `steward.toml` may map a label to a state. Raised by kubernetes, which
   keeps its real state machine in bot-applied labels. Deliberately unanswered

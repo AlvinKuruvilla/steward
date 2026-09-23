@@ -167,8 +167,8 @@ either trust or abandon.
 Vite, React, React Router, Tailwind and shadcn, with Geist from Fontsource --
 the stack `different-ai/openwork` runs in `apps/app`, which is where the tokens
 above were read from. Not Next.js: openwork uses that for `apps/review` and its
-marketing surfaces, and it would put a Node server in `compose.yaml` to render a
-tool that is local and single-user.
+marketing surfaces, and it would put a Node server inside the desktop app to
+render a tool that is local and single-user.
 
 Everything in openwork outside `/ee` is MIT, so components and tokens can be
 lifted with the notice attached. `/ee` is a separate proprietary licence.

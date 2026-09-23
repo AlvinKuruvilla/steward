@@ -16,10 +16,10 @@ stream and tells a maintainer what is waiting on whom, with the events that say
 so.
 
 > [!NOTE]
-> Early development. `docker compose up` serves an inbox for a repository you
-> have synced, on `127.0.0.1:8000`. Nothing authenticates a request, so the
-> ports are published to loopback and should stay there.
-> [`ROADMAP.md`](ROADMAP.md) says what each version has to prove.
+> Early development, and becoming a desktop app; [`ROADMAP.md`](ROADMAP.md)
+> says why. The backend is on SQLite and the desktop shell is not built yet, so
+> for now the interface runs in a browser against `127.0.0.1:8000` (see
+> *Development*). Nothing authenticates a request, so keep it on loopback.
 
 ## Why
 
@@ -52,19 +52,20 @@ Each answer says where it came from: `EVENT` when the events alone decide it,
 
 ## Development
 
-Requires Python 3.13, [uv](https://docs.astral.sh/uv/), Docker and
-[just](https://just.systems).
+Requires Python 3.13, [uv](https://docs.astral.sh/uv/), pnpm and
+[just](https://just.systems). The desktop shell is not built yet; until it is,
+the interface runs in a browser against the API.
 
 ```sh
-just fresh          # database, migrations, a synced repository, the interface
+just serve          # the API on 127.0.0.1:8000, with its database in tmp/data
+just web            # the interface, with hot reload; add a repository from it
 just check          # format, lint, types, tests
-just sync owner/repo
+just db             # a SQLite shell on the development database
 ```
 
 Tests replay a recorded GitHub response through `httpx.MockTransport`, so they
-need no network and no token. The ones that need Postgres use `steward_test`
-and skip when nothing is listening, so `just test` never touches a database you
-have synced into.
+need no network and no token. Each one gets its own database file, so
+`just test` never touches the one you have synced into.
 
 ## Documentation
 

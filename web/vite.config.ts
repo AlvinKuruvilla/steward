@@ -13,8 +13,4 @@ export default defineConfig({
     // The Python API. Only /api is proxied, so the SPA owns every other path.
     proxy: { "/api": "http://127.0.0.1:8000" },
   },
-  build: {
-    // Where the Dockerfile picks the built assets up from.
-    outDir: "dist",
-  },
 });
